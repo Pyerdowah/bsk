@@ -1,0 +1,35 @@
+﻿<Window x:Class="bsk.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:bsk"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid Background="#618358">
+
+        <StackPanel Margin="10">
+            <Label HorizontalAlignment="Center">Tryb</Label>
+            <RadioButton GroupName="mode" x:Name ="ecb" IsChecked="True" HorizontalAlignment="Center">ECB</RadioButton>
+            <RadioButton GroupName="mode" x:Name ="cbc" HorizontalAlignment="Center">CBC</RadioButton>
+            <RadioButton GroupName="mode" x:Name ="cfb" HorizontalAlignment="Center">CFB</RadioButton>
+            <Label HorizontalAlignment="Center">Szyfr</Label>
+            <RadioButton GroupName="cipher" x:Name ="cipher" IsChecked="True" HorizontalAlignment="Center">Szyfrowanie</RadioButton>
+            <RadioButton GroupName="cipher" x:Name ="decipher" HorizontalAlignment="Center">Deszyfrowanie</RadioButton>
+
+            <Label HorizontalAlignment="Center">Numer bajtu do zmiany</Label>
+            <TextBox Margin="10, 0, 0, 10 " HorizontalAlignment="Center" TextWrapping="Wrap" Text="" Width="50" 
+                     Name="error_byte" PreviewTextInput="PreviewTextInput"/>
+
+            <Label HorizontalAlignment="Center">Hasło</Label>
+            <PasswordBox Margin="10, 0, 0, 10 " HorizontalAlignment="Center" Width="100" Name="password"/>
+
+            <Button x:Name="file_button" Click="file_button_Click" Margin="10, 0">otworz plik</Button>
+            <TextBlock x:Name="file_name_box" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">nie wybrano pliku</TextBlock>
+
+            <Button x:Name="start_button" Click="start_button_Click" Margin="10">uruchom</Button>
+            <TextBlock x:Name="error_name_box" HorizontalAlignment="Center" IsEnabled="False"></TextBlock>
+
+        </StackPanel>
+    </Grid>
+</Window>
