@@ -6,10 +6,10 @@
         xmlns:local="clr-namespace:bsk"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid Background="#618358">
+    <Grid Background="#bfaa8c">
 
         <StackPanel Margin="10">
-            <Label HorizontalAlignment="Center">Tryb</Label>
+           <!-- <Label HorizontalAlignment="Center">Tryb</Label>
             <RadioButton GroupName="mode" x:Name ="ecb" IsChecked="True" HorizontalAlignment="Center">ECB</RadioButton>
             <RadioButton GroupName="mode" x:Name ="cbc" HorizontalAlignment="Center">CBC</RadioButton>
             <RadioButton GroupName="mode" x:Name ="cfb" HorizontalAlignment="Center">CFB</RadioButton>
@@ -26,10 +26,18 @@
 
             <Button x:Name="file_button" Click="file_button_Click" Margin="10, 0">otworz plik</Button>
             <TextBlock x:Name="file_name_box" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">nie wybrano pliku</TextBlock>
+            <TextBlock x:Name="messages" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap"></TextBlock>
 
             <Button x:Name="start_button" Click="start_button_Click" Margin="10">uruchom</Button>
-            <TextBlock x:Name="error_name_box" HorizontalAlignment="Center" IsEnabled="False"></TextBlock>
-
+            <TextBlock x:Name="error_name_box" HorizontalAlignment="Center" IsEnabled="False"></TextBlock>-->
+           <Button x:Name="connect" Click="connectButton" Margin="10, 0">Connect</Button>
+           <TextBlock x:Name="ifConnected" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">Nie połączono</TextBlock>
+           
+           <TextBox x:Name="textBox" HorizontalAlignment="Center" MinWidth="400" Margin="10"></TextBox>
+           <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Send</Button>
+           <ListBox ItemsSource="{Binding messages}" />
+               
+           
         </StackPanel>
     </Grid>
 </Window>
