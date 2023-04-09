@@ -49,7 +49,7 @@ namespace server
             thread = new Thread(HandleClient);
             thread.Start();
             availableThread = new Thread(AvailableHandler);
-            availableThread.Start();
+           // availableThread.Start();
         }
 
         private void HandleClient()
@@ -62,24 +62,18 @@ namespace server
                 // send a welcome message to the client
                 string welcomeMessage = "Welcome to the server!";
                 byte[] welcomeMessageBytes = Encoding.ASCII.GetBytes(welcomeMessage);
-                stream.Write(welcomeMessageBytes, 0, welcomeMessageBytes.Length);
+               // stream.Write(welcomeMessageBytes, 0, welcomeMessageBytes.Length);
 
                 while (client.Connected)
-                {
-                    // read a message from the client
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-
-                    Console.WriteLine("Received message from client: " + message);
-
-                    // send the message to all other connected clients
-                    byte[] messageBytes = Encoding.ASCII.GetBytes(message);
+                { 
+                   byte[] buffer = new byte[1024 * 1024]; // 1 MB
+                   int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                   Console.WriteLine("Received message from client: " + buffer);
                     foreach (TcpClient otherClient in Program.Clients)
                     {
                         if (otherClient != client && otherClient.Connected)
                         {
-                            otherClient.GetStream().Write(messageBytes, 0, messageBytes.Length);
+                            otherClient.GetStream().Write(buffer, 0, bytesRead);
                         }
                     }
                 }

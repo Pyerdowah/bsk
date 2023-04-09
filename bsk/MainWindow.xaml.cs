@@ -5,13 +5,16 @@ using System.Security.Cryptography;
 using System.Windows.Input;
 using System.Text.RegularExpressions;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace bsk
@@ -23,30 +26,27 @@ namespace bsk
     {
         private string _fName = "";
         private NetworkStream stream;
-        public ObservableCollection<string> messages { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<DataModel> Messages { get; set; } = new ObservableCollection<DataModel>();
         
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
         }
         
         private void connectButton(object sender, RoutedEventArgs e)
         {
             try
             {
-                // connect to the server on port 1234
                 TcpClient client = new TcpClient();
                 client.Connect(IPAddress.Loopback, 1234);
-
-                //Console.WriteLine("Connected to server at " + client.Client.RemoteEndPoint.ToString());
+                
                 ifConnected.Text = "Connected to server at " + client.Client.RemoteEndPoint.ToString();
                 send.IsEnabled = true;
-
-                // start a new thread to receive messages from the server
+                
                 Thread receiveThread = new Thread(() => receiveMessages(client));
                 receiveThread.Start();
-                //lvMessages.ItemsSource = messagesReceiver.messages;
-                // send messages to the server
+
                 stream = client.GetStream();
 
             }
@@ -60,46 +60,121 @@ namespace bsk
         {
             try
             {
-                NetworkStream stream = client.GetStream();
                 while (client.Connected)
                 {
-                    byte[] buffer = new byte[1024];
+                    // Odbierz dane pliku
+                    byte[] buffer = new byte[1024 * 1024]; // 1 MB
                     int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    //numer paczki
+                    byte[] packetNumber = new byte[4];
+                    Array.Copy(buffer, 0, packetNumber, 0, packetNumber.Length);
+                    int packetNumberInt = BitConverter.ToInt32(packetNumber, 0);
+                    //extension
+                    byte[] extension = new byte[8];
+                    Array.Copy(buffer, 4, extension, 0, extension.Length);
+                    long extension64 = BitConverter.ToInt64(extension, 0);
+                    //wielkość pliku
+                    byte[] fileSize = new byte[4];
+                    Array.Copy(buffer, 12, fileSize, 0, fileSize.Length);
+                    int fileSizeInt = BitConverter.ToInt32(fileSize, 0);
+                    //plik
+                    int numberOfPackets = (int) Math.Ceiling((double) fileSize.Length / (1024 * 1020));
+                    byte[] file = new byte[fileSizeInt];
+                    bytesRead -= 16;
+                    Array.Copy(buffer, 16, file, packetNumberInt * bytesRead, bytesRead);
+                    
+                    numberOfPackets--;
+                    
+                    while (numberOfPackets > 0)
+                    {
+                        byte[] buffer1 = new byte[1024 * 1024]; // 1 MB
+                        int bytesRead1 = stream.Read(buffer1, 0, buffer1.Length); 
+                        
+                        //numer paczki
+                        byte[] packetNumber1 = new byte[4];
+                        Array.Copy(buffer1, 0, packetNumber1, 0, packetNumber1.Length);
+                        int packetNumberInt1 = BitConverter.ToInt32(packetNumber1, 0);
+                        
+                        //file
+                        Array.Copy(buffer1, 4, file, packetNumberInt1 * bytesRead1, bytesRead1);
 
-                    Dispatcher.Invoke(() => messages.Add("Received message: " + message));
+                        numberOfPackets--;
+                    }
+
+                    this.Dispatcher.Invoke(() => Messages.Add(new DataModel(file, extension64)));
 
                 }
             }
             catch (Exception e)
             {
-                messages.Add("Error receiving messages from server: " + e.Message);
+                this.Dispatcher.Invoke(() => Messages.Add(new DataModel("Error receiving messages from server: " + e.Message)));
             }
         }
 
         private void sendButton(object sender, RoutedEventArgs e)
         {
-                string message = textBox.Text;
-
-                byte[] messageBytes = Encoding.ASCII.GetBytes(message);
-                stream.Write(messageBytes, 0, messageBytes.Length);
-        }
-
-        /*    private void file_button_Click(object sender, RoutedEventArgs e)
-            {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                if (openFileDialog.ShowDialog() == true)
+                string message;
+                DataPack dataPack = new DataPack();
+                List<byte[]> bytes;
+                if (textBox.Text == "")
                 {
-                    _fName = openFileDialog.FileName;
-                    if (_fName != "")
+                    message = _fName;
+                    bytes = dataPack.preparePacketsToSend(message, true);
+                    foreach (byte[] pack in bytes)
                     {
-                        file_name_box.Text = _fName;
-                        error_name_box.Foreground = Brushes.Yellow;
-                        error_name_box.Text = "wybrano plik";
+                        stream.Write(pack, 0, pack.Length);
                     }
                 }
+                else
+                {
+                    message = textBox.Text;
+                    bytes = dataPack.preparePacketsToSend(message, false);
+                    foreach (byte[] pack in bytes)
+                    {
+                        stream.Write(pack, 0, pack.Length);
+                    }
+                    textBox.Clear();
+                }
+                
+        }
+
+        private void fileButtonClick(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                _fName = openFileDialog.FileName;
+                if (_fName != "")
+                {
+                    file_name_box.Text = _fName;
+                    fileChosen.Foreground = Brushes.Yellow;
+                    fileChosen.Text = "wybrano plik";
+                }
             }
-    
+        }
+        
+        private void selectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataModel selectedItem = (DataModel)ListBox.SelectedItem;
+            
+            if (selectedItem == null || selectedItem.extension == Extensions.TEXT)
+            {
+                downloadButton.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                downloadButton.Visibility = Visibility.Visible;
+            }
+        }
+        
+        private void downloadFile(object sender, RoutedEventArgs e)
+        {
+            DataModel selectedItem = (DataModel)ListBox.SelectedItem;
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            if(saveFileDialog.ShowDialog() == true)
+                File.WriteAllBytes(saveFileDialog.FileName, selectedItem.file);
+        }
+    /*
             private void start_button_Click(object sender, RoutedEventArgs e)
             {
                 if (_fName != "")

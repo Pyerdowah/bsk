@@ -23,20 +23,30 @@
 
             <Label HorizontalAlignment="Center">Hasło</Label>
             <PasswordBox Margin="10, 0, 0, 10 " HorizontalAlignment="Center" Width="100" Name="password"/>
-
-            <Button x:Name="file_button" Click="file_button_Click" Margin="10, 0">otworz plik</Button>
-            <TextBlock x:Name="file_name_box" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">nie wybrano pliku</TextBlock>
-            <TextBlock x:Name="messages" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap"></TextBlock>
-
+            
             <Button x:Name="start_button" Click="start_button_Click" Margin="10">uruchom</Button>
             <TextBlock x:Name="error_name_box" HorizontalAlignment="Center" IsEnabled="False"></TextBlock>-->
-           <Button x:Name="connect" Click="connectButton" Margin="10, 0">Connect</Button>
+           
+           <Button x:Name="connect" Click="connectButton" Margin="10">Połącz się z serwerem</Button>
            <TextBlock x:Name="ifConnected" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">Nie połączono</TextBlock>
+           
+           <Button x:Name="file_button" Click="fileButtonClick" Margin="10">Otwórz plik</Button>
+           <TextBlock x:Name="file_name_box" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">Nie wybrano pliku</TextBlock>
+           <TextBlock x:Name="fileChosen" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap"></TextBlock>
            
            <TextBox x:Name="textBox" HorizontalAlignment="Center" MinWidth="400" Margin="10"></TextBox>
            <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Send</Button>
-           <ListBox ItemsSource="{Binding messages}" />
-               
+           
+           <ListBox x:Name="ListBox" SelectionMode="Single" ItemsSource="{Binding Messages}" SelectionChanged="selectionChanged">
+               <ListBox.ItemTemplate>
+                   <DataTemplate>
+                       <StackPanel Orientation="Horizontal">
+                           <TextBlock Text="{Binding Path=textMessage}" />
+                       </StackPanel>
+                   </DataTemplate>
+               </ListBox.ItemTemplate>
+           </ListBox>
+           <Button x:Name="downloadButton" Content="Pobierz" Click="downloadFile" Visibility="Collapsed"/> 
            
         </StackPanel>
     </Grid>

@@ -59,6 +59,9 @@
             <SubType>Code</SubType>
         </Compile>
         <Compile Include="Cryptography.cs" />
+        <Compile Include="DataModel.cs" />
+        <Compile Include="DataPack.cs" />
+        <Compile Include="Extensions.cs" />
         <Compile Include="MainWindow.xaml.cs">
             <DependentUpon>MainWindow.xaml</DependentUpon>
             <SubType>Code</SubType>
