@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Text;
 
 namespace bsk
 {
@@ -12,41 +11,22 @@ namespace bsk
         public DataModel(byte[] file, long extension)
         {
             this.file = file;
-            this.extension = getExtension(extension);
+            this.extension = ExtensionMethods.getExtensionFromLongValue(extension);
             if (this.extension == Extensions.TEXT)
             {
-                this.textMessage = Encoding.GetEncoding(28592).GetString(file);
+                this.textMessage = Encoding.GetEncoding(28592).GetString(file); // kodowanie na polskie znaki
             }
             else
             {
-                this.textMessage = "Received " + ExtensionMethods.toString(this.extension) + " file";
+                this.textMessage = "Otrzymano plik " + ExtensionMethods.toString(this.extension) + ".";
             }
         }
-        
+
         public DataModel(string textMessage)
         {
             this.textMessage = textMessage;
             this.file = null;
             this.extension = Extensions.TEXT;
         }
-        
-        private Extensions getExtension(long extension)
-        {
-            switch (extension)
-            {
-                case (0):
-                    return Extensions.TEXT;
-                case (4):
-                    return Extensions.AVI;
-                case (3):
-                    return Extensions.PDF;
-                case (2):
-                    return Extensions.PNG;
-                case (1):
-                    return Extensions.TXT;
-            }
-
-            return Extensions.TEXT;
-        }
     }
-} 
+}

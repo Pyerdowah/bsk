@@ -58,6 +58,7 @@
             <DependentUpon>App.xaml</DependentUpon>
             <SubType>Code</SubType>
         </Compile>
+        <Compile Include="Constants.cs" />
         <Compile Include="Cryptography.cs" />
         <Compile Include="DataModel.cs" />
         <Compile Include="DataPack.cs" />

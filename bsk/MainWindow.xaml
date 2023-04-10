@@ -35,8 +35,15 @@
            <TextBlock x:Name="fileChosen" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap"></TextBlock>
            
            <TextBox x:Name="textBox" HorizontalAlignment="Center" MinWidth="400" Margin="10"></TextBox>
-           <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Send</Button>
+           <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Wyślij</Button>
            
+           <TextBlock IsEnabled="False" TextWrapping="Wrap">
+               Drugi użytkownik
+               <Image x:Name="availabilityIcon" Width="20" Height="20" Source="https://img.icons8.com/color/16/null/ok--v1.png" Visibility="Collapsed"/>
+               <Image x:Name="unavailabilityIcon" Width="20" Height="20" Source="https://img.icons8.com/color/16/null/cancel--v1.png" Visibility="Collapsed"/>
+           </TextBlock>
+
+           <TextBlock HorizontalAlignment="Left" IsEnabled="False" TextWrapping="Wrap">Otrzymane wiadomości:</TextBlock>
            <ListBox x:Name="ListBox" SelectionMode="Single" ItemsSource="{Binding Messages}" SelectionChanged="selectionChanged">
                <ListBox.ItemTemplate>
                    <DataTemplate>

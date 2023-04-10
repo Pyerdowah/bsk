@@ -38,6 +38,7 @@ namespace server
         private TcpClient client;
         private Thread thread;
         private Thread availableThread;
+        private static int ONE_MB = 1024 * 1024; 
 
         public ClientHandler(TcpClient client)
         {
@@ -49,7 +50,7 @@ namespace server
             thread = new Thread(HandleClient);
             thread.Start();
             availableThread = new Thread(AvailableHandler);
-           // availableThread.Start();
+            availableThread.Start();
         }
 
         private void HandleClient()
@@ -59,14 +60,9 @@ namespace server
                 // get the client stream
                 NetworkStream stream = client.GetStream();
 
-                // send a welcome message to the client
-                string welcomeMessage = "Welcome to the server!";
-                byte[] welcomeMessageBytes = Encoding.ASCII.GetBytes(welcomeMessage);
-               // stream.Write(welcomeMessageBytes, 0, welcomeMessageBytes.Length);
-
                 while (client.Connected)
                 { 
-                   byte[] buffer = new byte[1024 * 1024]; // 1 MB
+                   byte[] buffer = new byte[ONE_MB]; // 1 MB
                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
                    Console.WriteLine("Received message from client: " + buffer);
                     foreach (TcpClient otherClient in Program.Clients)
@@ -88,19 +84,18 @@ namespace server
         {
             while (client.Connected)
             {
+                byte available;
                 if (Program.Clients.Count > 1)
                 {
-                    string availableMess = "Drugi dostepny";
-                    byte[] available = Encoding.ASCII.GetBytes(availableMess);
-                    client.GetStream().Write(available, 0, available.Length);
+                    available = 1;
                 }
                 else
                 {
-                    string availableMess = "Drugi niedostepny";
-                    byte[] available = Encoding.ASCII.GetBytes(availableMess);
-                    client.GetStream().Write(available, 0, available.Length);
+                    available = 0;
+                    
                 }
-                Thread.Sleep(8000);
+                client.GetStream().WriteByte(available);
+                Thread.Sleep(5000);
             }
         }
     }
