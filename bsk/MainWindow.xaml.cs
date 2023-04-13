@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,13 +25,24 @@ namespace bsk
         private string _fName = "";
         private NetworkStream stream;
         public ObservableCollection<DataModel> Messages { get; set; } = new ObservableCollection<DataModel>();
+        private BackgroundWorker backgroundWorker = new BackgroundWorker();
+        private Guid guid { get; set; }
+        Dictionary<Guid, DataModel> DataModels = new Dictionary<Guid, DataModel>();
+        private DataPack dataPack;
+
         public MainWindow()
         {
             InitializeComponent();
+            connect();
             DataContext = this;
+            progressBarWorker();
+            if (!Directory.Exists("tmp"))
+            {
+                Directory.CreateDirectory("tmp");
+            }
         }
-
-        private void connectButton(object sender, RoutedEventArgs e)
+        
+        private void connect()
         {
             try
             {
@@ -49,6 +63,14 @@ namespace bsk
             }
         }
 
+        private void progressBarWorker()
+        {
+            backgroundWorker.WorkerReportsProgress = true;
+            backgroundWorker.ProgressChanged += progressChanged;
+            backgroundWorker.DoWork += doWork;
+            backgroundWorker.RunWorkerCompleted += workerCompleted;
+        }
+
         private void receiveMessages(TcpClient client)
         {
             try
@@ -56,57 +78,73 @@ namespace bsk
                 while (client.Connected)
                 {
                     // Odbierz dane pliku
-                    byte[] buffer = new byte[Constants.ONE_MB]; // 1 MB
+                    byte[] buffer = new byte[Constants.ONE_KB];
                     int bytesRead = stream.Read(buffer, 0, buffer.Length);
                     if (bytesRead == 1) // taka mała paczka oznacza wiadomość o dostępności
                     {
                         setVisibility(buffer);
                     }
+                    else if (bytesRead == 16)
+                    {
+                        byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+                        Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
+                        guid = new Guid(guidInBytes);
+                    }
                     else
                     {
-                        //numer paczki
-                        byte[] packetNumberInBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
-                        Array.Copy(buffer, 0, packetNumberInBytes, 0, packetNumberInBytes.Length);
-                        int packetNumber = BitConverter.ToInt32(packetNumberInBytes, 0);
+                        //guid
+                        byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+                        Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
+                        Guid guidReceived = new Guid(guidInBytes);
+                        
+                        //guid całej wiadomosci
+                        byte[] messageGuidIdInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+                        Array.Copy(buffer, 16, messageGuidIdInBytes, 0, messageGuidIdInBytes.Length);
+                        Guid messageGuidId = new Guid(messageGuidIdInBytes);
+                        
                         //extension
                         byte[] extensionInBytes = new byte[Constants.EXTENSION_BYTES_NUMBER];
-                        Array.Copy(buffer, 4, extensionInBytes, 0, extensionInBytes.Length);
+                        Array.Copy(buffer, 32, extensionInBytes, 0, extensionInBytes.Length);
                         long extension = BitConverter.ToInt64(extensionInBytes, 0);
+                        
                         //wielkość pliku
                         byte[] fileSizeInBytes = new byte[Constants.FILE_SIZE_BYTES_NUMBER];
-                        Array.Copy(buffer, 12, fileSizeInBytes, 0, fileSizeInBytes.Length);
-                        int fileSize = BitConverter.ToInt32(fileSizeInBytes, 0);
-                        //plik
-                        int numberOfPackets = (int)Math.Ceiling((double)fileSizeInBytes.Length / (Constants.ONE_MB - Constants.PACKET_NUMBER_BYTES_NUMBER));
-                        byte[] file = new byte[fileSize];
+                        Array.Copy(buffer, 40, fileSizeInBytes, 0, fileSizeInBytes.Length);
+                        long fileSize = BitConverter.ToInt64(fileSizeInBytes, 0);
+                        
+                        //liczba paczek
+                        byte[] packetsNumberInBytes = new byte[Constants.PACKETS_NUMBER_BYTES_NUMBER];
+                        Array.Copy(buffer, 48, packetsNumberInBytes, 0, packetsNumberInBytes.Length);
+                        long packetsNumber = BitConverter.ToInt64(packetsNumberInBytes, 0);
+                        
+                        //numer paczki
+                        byte[] packetNumberInBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
+                        Array.Copy(buffer, 56, packetNumberInBytes, 0, packetNumberInBytes.Length);
+                        int packetNumber = BitConverter.ToInt32(packetNumberInBytes, 0);
+                        
+                        //czesc pliku co przyszla z paczką
                         bytesRead -= Constants.HEADER_BYTES_NUMBER;
-                        Array.Copy(buffer, Constants.HEADER_BYTES_NUMBER, file, packetNumber * bytesRead, bytesRead);
-
-                        numberOfPackets--;
-
-                        while (numberOfPackets > 0)
+                        byte[] file = new byte[bytesRead];
+                        Array.Copy(buffer, Constants.HEADER_BYTES_NUMBER, file, 0, bytesRead);
+                        
+                        if (packetNumber == 0)
                         {
-                            byte[] buffer1 = new byte[Constants.ONE_MB]; // 1 MB
-                            int bytesRead1 = stream.Read(buffer1, 0, buffer1.Length);
-                            if (bytesRead == 1)
+                            string filePath = "tmp/" + messageGuidId + "." +
+                                              ExtensionMethods.getExtensionFromLongValue(extension);
+                            DataModels[messageGuidId] = new DataModel(file, extension, filePath);
+                        }
+                        if (DataModels[messageGuidId].extension != Extensions.TEXT)
+                        {
+                            using (FileStream fileStream = new FileStream(DataModels[messageGuidId].filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
                             {
-                                setVisibility(buffer);
-                            }
-                            else
-                            {
-                                //numer paczki
-                                byte[] packetNumber1InBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
-                                Array.Copy(buffer1, 0, packetNumber1InBytes, 0, packetNumber1InBytes.Length);
-                                int packetNumber1 = BitConverter.ToInt32(packetNumber1InBytes, 0);
-
-                                //file
-                                Array.Copy(buffer1, Constants.PACKET_NUMBER_BYTES_NUMBER, file, packetNumber1 * bytesRead1, bytesRead1);
-
-                                numberOfPackets--;
+                                fileStream.Write(file, 0, file.Length);
                             }
                         }
-
-                        this.Dispatcher.Invoke(() => Messages.Add(new DataModel(file, extension)));
+                        if (packetNumber + 1 == packetsNumber)
+                        {
+                            this.Dispatcher.Invoke(() => Messages.Add(DataModels[messageGuidId]));
+                        }
+                        stream.Write(guidInBytes, 0, guidInBytes.Length);
                     }
                 }
             }
@@ -134,28 +172,88 @@ namespace bsk
         private void sendButton(object sender, RoutedEventArgs e)
         {
             string message;
-            DataPack dataPack = new DataPack();
-            List<byte[]> bytes;
+            dataPack = new DataPack();
             if (textBox.Text == "")
             {
                 message = _fName;
-                bytes = dataPack.preparePacketsToSend(message, true);
-                foreach (byte[] pack in bytes)
-                {
-                    stream.Write(pack, 0, pack.Length);
-                }
+                dataPack.prepareHeaderToSend(message, true);
             }
             else
             {
                 message = textBox.Text;
-                bytes = dataPack.preparePacketsToSend(message, false);
-                foreach (byte[] pack in bytes)
-                {
-                    stream.Write(pack, 0, pack.Length);
-                }
-
+                dataPack.prepareHeaderToSend(message, false);
                 textBox.Clear();
             }
+            ProgressBar.Maximum = dataPack.packetsNumber;
+            ProgressBar.Visibility = Visibility.Visible;
+            send.IsEnabled = false;
+            backgroundWorker.RunWorkerAsync();
+
+        }
+
+        private void doWork(object sender, DoWorkEventArgs e)
+        {
+            Guid messageId;
+            int numberOfPacket = 0;
+            while (dataPack.packetsNumber > 0)
+            {
+                messageId = Guid.NewGuid();
+                messageId.ToByteArray();
+                BitConverter.GetBytes(numberOfPacket);
+                IEnumerable<byte> rv = messageId.ToByteArray().Concat(dataPack.header).Concat(BitConverter.GetBytes(numberOfPacket));
+                var wholeHeader = rv.ToArray();
+                byte[] filePacket;
+                if (dataPack.fileToSend)
+                {
+                    if (dataPack.packetsNumber == 1)
+                    {
+                        filePacket = new byte[dataPack.messSize % (Constants.ONE_KB - Constants.HEADER_BYTES_NUMBER)];
+                    }
+                    else
+                    {
+                        filePacket = new byte[Constants.ONE_KB - Constants.HEADER_BYTES_NUMBER];
+                    }
+                    using (var fileStream = new FileStream(dataPack.filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        fileStream.Seek(numberOfPacket * (Constants.ONE_KB - Constants.HEADER_BYTES_NUMBER), SeekOrigin.Begin);
+
+                        fileStream.Read(filePacket, 0, filePacket.Length);
+
+                    }
+                    var packet = wholeHeader.Concat(filePacket).ToArray();
+                    stream.Write(packet, 0, packet.Length);
+                }
+                else
+                {
+                    byte[] textData = Encoding.GetEncoding(28592).GetBytes(dataPack.filePath);
+                    var packet = wholeHeader.Concat(textData).ToArray();
+                    stream.Write(packet, 0, packet.Length);
+
+                }
+                while (true)
+                {
+                    if (messageId == guid)
+                    {
+                        break;
+                    }
+                }
+                this.Dispatcher.Invoke(() => ProgressBar.Value += 1);
+                dataPack.packetsNumber--;
+                numberOfPacket++;
+                backgroundWorker.ReportProgress(numberOfPacket);
+            }
+
+        }
+
+        private void progressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            ProgressBar.Value = e.ProgressPercentage;
+        }
+        
+        private void workerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            ProgressBar.Visibility = Visibility.Collapsed;
+            send.IsEnabled = true;
         }
 
         private void fileButtonClick(object sender, RoutedEventArgs e)
@@ -194,8 +292,7 @@ namespace bsk
             saveFileDialog.Filter = ExtensionMethods.setFileFilter(selectedItem.extension);
             if (saveFileDialog.ShowDialog() == true)
             {
-                
-                File.WriteAllBytes(saveFileDialog.FileName, selectedItem.file);
+                File.Copy(selectedItem.filePath, saveFileDialog.FileName);
             }
         }
         /*

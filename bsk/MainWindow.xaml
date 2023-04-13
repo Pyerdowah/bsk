@@ -27,7 +27,6 @@
             <Button x:Name="start_button" Click="start_button_Click" Margin="10">uruchom</Button>
             <TextBlock x:Name="error_name_box" HorizontalAlignment="Center" IsEnabled="False"></TextBlock>-->
            
-           <Button x:Name="connect" Click="connectButton" Margin="10">Połącz się z serwerem</Button>
            <TextBlock x:Name="ifConnected" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">Nie połączono</TextBlock>
            
            <Button x:Name="file_button" Click="fileButtonClick" Margin="10">Otwórz plik</Button>
@@ -36,6 +35,7 @@
            
            <TextBox x:Name="textBox" HorizontalAlignment="Center" MinWidth="400" Margin="10"></TextBox>
            <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Wyślij</Button>
+           <ProgressBar x:Name="ProgressBar" Height="20" Visibility="Collapsed"/>
            
            <TextBlock IsEnabled="False" TextWrapping="Wrap">
                Drugi użytkownik

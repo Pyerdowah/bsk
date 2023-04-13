@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -38,7 +39,7 @@ namespace server
         private TcpClient client;
         private Thread thread;
         private Thread availableThread;
-        private static int ONE_MB = 1024 * 1024; 
+        private static int ONE_KB = 4 * 1024; 
 
         public ClientHandler(TcpClient client)
         {
@@ -59,10 +60,10 @@ namespace server
             {
                 // get the client stream
                 NetworkStream stream = client.GetStream();
-
+                byte[] buffer;
                 while (client.Connected)
                 { 
-                   byte[] buffer = new byte[ONE_MB]; // 1 MB
+                   buffer = new byte[ONE_KB];
                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
                    Console.WriteLine("Received message from client: " + buffer);
                     foreach (TcpClient otherClient in Program.Clients)

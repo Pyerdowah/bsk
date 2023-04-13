@@ -2,67 +2,61 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 
 namespace bsk
 {
     public class DataPack
     {
-        public List<byte[]> preparePacketsToSend(string filePath, bool fileToSend)
+        public byte[] header { get; set; }
+        public long messSize { get; set; }
+        public long packetsNumber { get; set; }
+        public bool fileToSend { get; set; }
+        public string filePath { get; set; }
+
+        public void prepareHeaderToSend(string filePath, bool fileToSend)
         {
-            List<byte[]> packetsToSend = new List<byte[]>();
-            byte[] dataToDivide;
-            int bytesLeft;
+            this.filePath = filePath;
+            this.fileToSend = fileToSend;
+            long bytesLeft;
+            FileInfo fileInfo;
+            Guid guid = Guid.NewGuid();
+            IEnumerable<byte> rv;
             if (fileToSend)
             {
-                dataToDivide = prepareFileToSend(filePath);
-                bytesLeft = dataToDivide.Length;
+                fileInfo = new FileInfo(filePath);
+                rv = guid.ToByteArray().Concat(BitConverter.GetBytes((Int64)ExtensionMethods.getExtensionFromPath(filePath))
+                    .Concat(BitConverter.GetBytes(fileInfo.Length)));
+                bytesLeft = fileInfo.Length;
             }
             else
             {
-                dataToDivide = prepareTextToSend(filePath);
-                bytesLeft = dataToDivide.Length;
+                rv = guid.ToByteArray().Concat(BitConverter.GetBytes((Int64)Extensions.TEXT)
+                    .Concat(BitConverter.GetBytes((Int64)filePath.Length)));
+                bytesLeft = filePath.Length;
             }
 
-            int packetNumber = 0;
-            while (bytesLeft > 0)
-            {
-                byte[] buffer;
-                if (bytesLeft > Constants.ONE_MB - Constants.PACKET_NUMBER_BYTES_NUMBER)
-                {
-                    buffer = new byte[Constants.ONE_MB - Constants.PACKET_NUMBER_BYTES_NUMBER]; // ~1 MB
-                }
-                else
-                {
-                    buffer = new byte[bytesLeft];
-                }
-
-                Array.Copy(dataToDivide, packetNumber * buffer.Length, buffer,
-                    0, buffer.Length);
-                byte[] rv = BitConverter.GetBytes(packetNumber).Concat(buffer).ToArray();
-                packetsToSend.Add(rv);
-                bytesLeft -= rv.Length;
-                packetNumber++;
-            }
-
-            return packetsToSend;
+            long numberOfPackets = bytesLeft / (Constants.ONE_KB - Constants.HEADER_BYTES_NUMBER) +
+                                   (bytesLeft % (Constants.ONE_KB - Constants.HEADER_BYTES_NUMBER) != 0 ? 1 : 0);
+            header = rv.ToArray().Concat(BitConverter.GetBytes(numberOfPackets)).ToArray();
+            messSize = bytesLeft;
+            packetsNumber = numberOfPackets;
         }
 
         private byte[] prepareFileToSend(string filePath)
         {
-            byte[] fileData = File.ReadAllBytes(filePath);
+            FileInfo fileInfo = new FileInfo(filePath);
             IEnumerable<byte> rv = BitConverter.GetBytes((Int64)ExtensionMethods.getExtensionFromPath(filePath))
-                .Concat(BitConverter.GetBytes(fileData.Length))
-                .Concat(fileData);
+                .Concat(BitConverter.GetBytes(fileInfo.Length));
             return rv.ToArray();
         }
 
         private byte[] prepareTextToSend(string text)
         {
-            byte[] textData = Encoding.GetEncoding(28592).GetBytes(text); // kodowanie na polskie znak
+           // byte[] textData = Encoding.GetEncoding(28592).GetBytes(text); // kodowanie na polskie znaki
             IEnumerable<byte> rv = BitConverter.GetBytes((Int64)Extensions.TEXT)
-                .Concat(BitConverter.GetBytes(textData.Length))
-                .Concat(textData);
+                .Concat(BitConverter.GetBytes(text.Length));
             return rv.ToArray();
         }
     }
