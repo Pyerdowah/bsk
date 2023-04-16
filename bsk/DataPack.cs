@@ -43,21 +43,5 @@ namespace bsk
             messSize = bytesLeft;
             packetsNumber = numberOfPackets;
         }
-
-        private byte[] prepareFileToSend(string filePath)
-        {
-            FileInfo fileInfo = new FileInfo(filePath);
-            IEnumerable<byte> rv = BitConverter.GetBytes((Int64)ExtensionMethods.getExtensionFromPath(filePath))
-                .Concat(BitConverter.GetBytes(fileInfo.Length));
-            return rv.ToArray();
-        }
-
-        private byte[] prepareTextToSend(string text)
-        {
-           // byte[] textData = Encoding.GetEncoding(28592).GetBytes(text); // kodowanie na polskie znaki
-            IEnumerable<byte> rv = BitConverter.GetBytes((Int64)Extensions.TEXT)
-                .Concat(BitConverter.GetBytes(text.Length));
-            return rv.ToArray();
-        }
     }
 }

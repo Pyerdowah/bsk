@@ -10,9 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 
 namespace bsk
@@ -79,12 +77,12 @@ namespace bsk
                 {
                     // Odbierz dane pliku
                     byte[] buffer = new byte[Constants.ONE_KB];
-                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length); // po tym powinno być jakieś odszyfrowywanie
                     if (bytesRead == 1) // taka mała paczka oznacza wiadomość o dostępności
                     {
-                        setVisibility(buffer);
+                        setAvailability(buffer);
                     }
-                    else if (bytesRead == 16)
+                    else if (bytesRead == 16) // potwierdzenie otrzymania wiadomości
                     {
                         byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
                         Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
@@ -95,8 +93,7 @@ namespace bsk
                         //guid
                         byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
                         Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
-                        Guid guidReceived = new Guid(guidInBytes);
-                        
+
                         //guid całej wiadomosci
                         byte[] messageGuidIdInBytes = new byte[Constants.GUID_BYTES_NUMBER];
                         Array.Copy(buffer, 16, messageGuidIdInBytes, 0, messageGuidIdInBytes.Length);
@@ -155,7 +152,7 @@ namespace bsk
             }
         }
 
-        private void setVisibility(byte[] buffer)
+        private void setAvailability(byte[] buffer)
         {
             if (buffer[0] == 1)
             {
@@ -203,6 +200,7 @@ namespace bsk
                 IEnumerable<byte> rv = messageId.ToByteArray().Concat(dataPack.header).Concat(BitConverter.GetBytes(numberOfPacket));
                 var wholeHeader = rv.ToArray();
                 byte[] filePacket;
+                byte[] wholePacket;
                 if (dataPack.fileToSend)
                 {
                     if (dataPack.packetsNumber == 1)
@@ -220,16 +218,14 @@ namespace bsk
                         fileStream.Read(filePacket, 0, filePacket.Length);
 
                     }
-                    var packet = wholeHeader.Concat(filePacket).ToArray();
-                    stream.Write(packet, 0, packet.Length);
+                    wholePacket = wholeHeader.Concat(filePacket).ToArray();
                 }
                 else
                 {
                     byte[] textData = Encoding.GetEncoding(28592).GetBytes(dataPack.filePath);
-                    var packet = wholeHeader.Concat(textData).ToArray();
-                    stream.Write(packet, 0, packet.Length);
-
+                    wholePacket = wholeHeader.Concat(textData).ToArray();
                 }
+                stream.Write(wholePacket, 0, wholePacket.Length); // wysyłanie paczki, zaraz przed tym powinno wlecieć jakieś szyfrowanie
                 while (true)
                 {
                     if (messageId == guid)
