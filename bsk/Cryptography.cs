@@ -8,18 +8,28 @@ using System.Text;
 namespace bsk
 {
     internal class Cryptography
+    ///<summary>
+    /// Class containing cryptography methods for the project.
+    /// </summary>
     {
         private const string DecrFolder = "C:/ProgramData/Decription";
         private const string EncFolder = "C:/ProgramData/Encription";
         private readonly byte[] _salt = { 10, 20, 30, 40, 50, 60, 70, 80 };
 
-        public Cryptography()
+        public AesCryptography()
+        ///<summary>
+        ///Parameterless constructor. Uses static fields to create Decription and Encription folders.
+        ///</summary>
         {
             Directory.CreateDirectory(DecrFolder);
             Directory.CreateDirectory(EncFolder);
         }
 
+
         private byte[] ComputeSha(FileInfo file)
+        ///<summary>
+        /// Computes Sha256 of opened file
+        /// </summary>
         {
             using (var mySha256 = SHA256.Create())
             {
@@ -33,6 +43,9 @@ namespace bsk
         }
 
         public int Cipher(bool decrypt, string fName, CipherMode cipherMode, string password, int err)
+        ///<summary>
+        /// Either encrypts or decrypts the file. Useful for decrypting RSA key...?
+        /// </summary>
         {
             if (decrypt)
                 return Decrypt(new FileInfo(fName), cipherMode, err, password);
@@ -43,6 +56,9 @@ namespace bsk
         }
 
         private void Encrypt(FileInfo file, CipherMode cipherMode, string password)
+        ///<summary>
+        /// Encrypts the file using given cipherMode and password.
+        /// </summary>
         {
             // Create instance of Aes for
             // symmetric encryption of the data.
@@ -100,11 +116,20 @@ namespace bsk
         }
 
         private int Decrypt(FileInfo file, CipherMode cipherMode, int modification, string password)
+        ///<summary>
+        /// Decrypts file with AES
+        ///</summary>
+        ///public enum CipherMode
+        ///CBC = 1,
+        ///ECB = 2,
         {
             // Create instance of Aes for
             // symmetric decryption of the data.
-            var aes = Aes.Create();
+            //Aes Create instance
+
+            Aes aes = Aes.Create();
             aes.Mode = cipherMode;
+
 
             // Create byte arrays to get extension of
             // the encrypted file and SHA256.
