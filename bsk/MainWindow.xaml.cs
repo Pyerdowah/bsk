@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -27,6 +28,7 @@ namespace bsk
         private Guid guid { get; set; }
         Dictionary<Guid, DataModel> DataModels = new Dictionary<Guid, DataModel>();
         private DataPack dataPack;
+        private CipherMode ciphermode = CipherMode.CBC;
 
         public MainWindow()
         {
@@ -78,6 +80,8 @@ namespace bsk
                     // Odbierz dane pliku
                     byte[] buffer = new byte[Constants.ONE_KB];
                     int bytesRead = stream.Read(buffer, 0, buffer.Length); // po tym powinno być jakieś odszyfrowywanie
+                    
+                    
                     if (bytesRead == 1) // taka mała paczka oznacza wiadomość o dostępności
                     {
                         setAvailability(buffer);
@@ -178,6 +182,11 @@ namespace bsk
             else
             {
                 message = textBox.Text;
+                byte[] buffer = Encoding.UTF8.GetBytes(message);
+                AesParams ap = new AesParams(ciphermode);
+                AesCipher aes = new AesCipher();
+                byte[] encrypted = aes.EncryptByte(buffer, ap);
+                message = Encoding.UTF8.GetString(encrypted);
                 dataPack.prepareHeaderToSend(message, false);
                 textBox.Clear();
             }
@@ -225,6 +234,8 @@ namespace bsk
                     byte[] textData = Encoding.GetEncoding(28592).GetBytes(dataPack.filePath);
                     wholePacket = wholeHeader.Concat(textData).ToArray();
                 }
+                //TODO
+                //powinno byc tak, że zaszyfrowane są dane dotyczące
                 stream.Write(wholePacket, 0, wholePacket.Length); // wysyłanie paczki, zaraz przed tym powinno wlecieć jakieś szyfrowanie
                 while (true)
                 {
@@ -291,72 +302,84 @@ namespace bsk
                 File.Copy(selectedItem.filePath, saveFileDialog.FileName);
             }
         }
+
+        public void RadioButtonECB_Checked(object sender, RoutedEventArgs e)
+        {
+            ciphermode = CipherMode.ECB;
+        }
+
+        public void RadioButtonCBC_Checked(object sender, RoutedEventArgs e)
+        {
+            ciphermode = CipherMode.CBC;
+        }
+
+
         /*
-                private void start_button_Click(object sender, RoutedEventArgs e)
-                {
-                    if (_fName != "")
-                    {
-        
-                        error_name_box.Foreground = Brushes.LightGreen;
-                        error_name_box.Visibility = Visibility.Collapsed;
-                        error_name_box.Text = "sukces";
-        
-                        int err = -1;
-                        int decryptError = 0;
-        
-                        if(error_byte.Text != "")
-                        {
-                            err = Int32.Parse(error_byte.Text);
-                        }
-        
-                        Cryptography cryptography = new Cryptography();
-                        
-                        if (ecb.IsChecked == true)
-                        {
-                            decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.ECB, password.Password, err);
-                        }
-                        else if (cbc.IsChecked == true)
-                        {
-                            decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.CBC, password.Password, err);
-                        }
-                        else if (cfb.IsChecked == true)
-                        {
-                            decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.CFB, password.Password, err);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Wystąpił błąd przy wybieraniu trybu.", " ",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-        
-                        switch (decryptError)
-                        {
-                            case -1:
-                                MessageBox.Show("Wystąpił błąd przy odczycie parametrów deszyfrowania.\nPodano niepoprawny tryb lub hasło.", 
-                                    " ",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                                return;
-                            case -2:
-                                MessageBox.Show("Miała miejsce nieautoryzowana zmiana w pliku.", 
-                                    " ",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                                return;
-                            case -3:
-                                MessageBox.Show("Suma kontrolna się nie zgadza.", " ",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                                return;
-                            
-                        }
-        
-                        error_name_box.Visibility = Visibility.Visible;
-                        
-        
-                    }
-                }
-                private void PreviewTextInput(object sender, TextCompositionEventArgs e)
-                {
-                    Regex regex = new Regex("[^0-9]+");
-                    e.Handled = regex.IsMatch(e.Text);
-                }*/
+       private void start_button_Click(object sender, RoutedEventArgs e)
+       {
+           if (_fName != "")
+           {
+
+               error_name_box.Foreground = Brushes.LightGreen;
+               error_name_box.Visibility = Visibility.Collapsed;
+               error_name_box.Text = "sukces";
+
+               int err = -1;
+               int decryptError = 0;
+
+               if(error_byte.Text != "")
+               {
+                   err = Int32.Parse(error_byte.Text);
+               }
+
+               Cryptography cryptography = new Cryptography();
+
+               if (ecb.IsChecked == true)
+               {
+                   decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.ECB, password.Password, err);
+               }
+               else if (cbc.IsChecked == true)
+               {
+                   decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.CBC, password.Password, err);
+               }
+               else if (cfb.IsChecked == true)
+               {
+                   decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.CFB, password.Password, err);
+               }
+               else
+               {
+                   MessageBox.Show("Wystąpił błąd przy wybieraniu trybu.", " ",
+                       MessageBoxButton.OK, MessageBoxImage.Error);
+               }
+
+               switch (decryptError)
+               {
+                   case -1:
+                       MessageBox.Show("Wystąpił błąd przy odczycie parametrów deszyfrowania.\nPodano niepoprawny tryb lub hasło.", 
+                           " ",
+                           MessageBoxButton.OK, MessageBoxImage.Error);
+                       return;
+                   case -2:
+                       MessageBox.Show("Miała miejsce nieautoryzowana zmiana w pliku.", 
+                           " ",
+                           MessageBoxButton.OK, MessageBoxImage.Error);
+                       return;
+                   case -3:
+                       MessageBox.Show("Suma kontrolna się nie zgadza.", " ",
+                           MessageBoxButton.OK, MessageBoxImage.Error);
+                       return;
+
+               }
+
+               error_name_box.Visibility = Visibility.Visible;
+
+
+           }
+       }
+       private void PreviewTextInput(object sender, TextCompositionEventArgs e)
+       {
+           Regex regex = new Regex("[^0-9]+");
+           e.Handled = regex.IsMatch(e.Text);
+       }*/
     }
 }

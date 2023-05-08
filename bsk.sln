@@ -1,22 +1,69 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bsk", "bsk\bsk.csproj", "{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "server", "server\server.csproj", "{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testy", "testy\testy.csproj", "{52F8113D-7063-4C9F-9252-CAD02415F53A}"
+EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "bsk — kopia", "bsk\bin\Debug\bsk — kopia.exe", "{86E46A24-6776-4E5F-A5F1-D31EE580274D}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\bsk\bsk\bsk\bin\Debug\bsk — kopia.exe
+		RemoteMachine = DESKTOP-TTRIFUL
+		StartingDirectory = C:\bsk\bsk\bsk\bin\Debug
+		Environment = Domyślne
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+		IORedirection = Auto
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Debug|x64.Build.0 = Debug|Any CPU
 		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Release|x64.ActiveCfg = Release|Any CPU
+		{628E5276-9E5B-4CBA-99B7-A75F54CF8F73}.Release|x64.Build.0 = Release|Any CPU
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Debug|x64.Build.0 = Debug|Any CPU
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|x64.ActiveCfg = Release|Any CPU
+		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|x64.Build.0 = Release|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|x64.Build.0 = Debug|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|x64.ActiveCfg = Release|Any CPU
+		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|x64.Build.0 = Release|Any CPU
+		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Debug|Any CPU.ActiveCfg = Release|x64
+		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Debug|x64.ActiveCfg = Release|x64
+		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Release|Any CPU.ActiveCfg = Release|x64
+		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Release|x64.ActiveCfg = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {97EE2F37-3656-48E7-8024-5160832C6E38}
 	EndGlobalSection
 EndGlobal
