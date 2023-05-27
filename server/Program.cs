@@ -86,9 +86,13 @@ namespace server
             while (client.Connected)
             {
                 byte available;
-                if (Program.Clients.Count > 1)
+                if (Program.Clients.Count == 1)
                 {
                     available = 1;
+                }
+                else if (Program.Clients.Count > 1)
+                {
+                    available = 2;
                 }
                 else
                 {
