@@ -5,16 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:bsk"
         mc:Ignorable="d"
-        Title="Login" Height="300" Width="800"
-        TextElement.Foreground="White"
-        Background="RoyalBlue">
+        Title="Login" Height="400" Width="800"
+        TextElement.Foreground="Black"
+        Background="#bfaa8c">
     <Grid>
-        <TextBlock FontSize="24" HorizontalAlignment="Center">Please enter password to decrypt your RSA private key
-           <LineBreak /> or create a new one and encrypt with typed password.
-        </TextBlock>
-        <PasswordBox FontSize="24" Height="40" Width="300"></PasswordBox>
-        <Button  FontSize="24" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="80" Width="300" Margin="20 0 0 20">Decrypt</Button>
-        <Button  FontSize="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="80" Width="300" Margin="0 0 20 20">Create new</Button>
-        
+        <StackPanel>
+            <TextBlock FontSize="24" HorizontalAlignment="Center">Please enter login and password to decrypt your RSA private key
+               <LineBreak /> or create a new one and encrypt with typed password.
+            </TextBlock>
+
+            <TextBlock x:Name="correctPassword" TextElement.Foreground="Red" FontSize="20" HorizontalAlignment="Center" IsEnabled="False" Visibility="Hidden" Margin="0 40 0 10">Złe hasło!</TextBlock>
+            <TextBox x:Name="LoginBox" FontSize="24" Height="40" Width="300" Margin="0 0 0 10"></TextBox>
+            <PasswordBox x:Name="PasswordBox" FontSize="24" Height="40" Width="300"></PasswordBox>
+        </StackPanel> 
+            <Button Click="btnCreateNew" FontSize="24" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="80" Width="300" Margin="0 0 20 20">Create new</Button>
+            <Button Click="btnDecrypt" FontSize="24" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="80" Width="300" Margin="20 0  0 20">Decrypt</Button>
+
     </Grid>
 </Window>

@@ -15,7 +15,6 @@ namespace bsk
         public RSAParameters _my_private_key { get; set; }
         public RSAParameters _my_public_key { get; set; }
         public RSAParameters _other_public_key { get; set; }
-        private string _other_public_key_path = "klucz.pub";
 
         /// <summary>
         /// Tries to load public key of partnering application.
@@ -27,16 +26,6 @@ namespace bsk
             {
                 this._my_private_key = rsa.ExportParameters(true);
                 this._my_public_key = rsa.ExportParameters(false);
-                try
-                {
-                    ImportPublicKeyFromFile(_other_public_key_path);
-                }
-                catch (System.IO.FileNotFoundException e)
-                {
-                    //no file klucz.pub
-                    Application.Current.Shutdown();
-                }
-
             }
         }
 
@@ -79,9 +68,19 @@ namespace bsk
                 this._my_private_key = rsa.ExportParameters(true);
             }
         }
-        public void ImportOtherPublicKey(byte[] keys)
+        public void ImportPublicKey(byte[] keys)
         {
             using (RSA rsa = RSA.Create(_my_private_key))
+            {
+                string xmlString = Encoding.UTF8.GetString(keys);
+                rsa.FromXmlString(xmlString);
+                this._my_public_key = rsa.ExportParameters(false);
+            }
+        }
+        
+        public void ImportOtherPublicKey(byte[] keys)
+        {
+            using (RSA rsa = RSA.Create())
             {
                 string xmlString = Encoding.UTF8.GetString(keys);
                 rsa.FromXmlString(xmlString);
@@ -98,7 +97,35 @@ namespace bsk
                 {
                     fs.CopyTo(ms);
                     byte[] fileContent = ms.ToArray();
+                    ImportPublicKey(fileContent);
+                }
+            }
+        }
+        
+        public void ImportOtherPublicKeyFromFile(string filePath)
+        {
+
+            using (FileStream fs = File.OpenRead(filePath))
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    fs.CopyTo(ms);
+                    byte[] fileContent = ms.ToArray();
                     ImportOtherPublicKey(fileContent);
+                }
+            }
+        }
+        
+        public byte[] ImportPrivateKeyFromFile(string filePath)
+        {
+
+            using (FileStream fs = File.OpenRead(filePath))
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    fs.CopyTo(ms);
+                    byte[] fileContent = ms.ToArray();
+                    return fileContent;
                 }
             }
         }
@@ -108,12 +135,23 @@ namespace bsk
             byte[] key = ExportPublicKey();
             File.WriteAllBytes(filePath, key);
         }
-
-        public byte[] Encrypt(byte[] arg)
+        
+        public void ExportPrivateKeyToFile(byte[] key, string filePath)
         {
+            File.WriteAllBytes(filePath, key);
+        }
+
+        public byte[] Encrypt(FileInfo fileInfo)
+        {
+            byte[] fileBytes;
+            using (FileStream stream = fileInfo.OpenRead())
+            {
+                fileBytes = new byte[stream.Length];
+                stream.Read(fileBytes, 0, fileBytes.Length);
+            }
             using (RSA rsa = RSA.Create(_other_public_key))
             {
-                byte[] encrypted = rsa.Encrypt(arg, RSAEncryptionPadding.OaepSHA512);
+                byte[] encrypted = rsa.Encrypt(fileBytes, RSAEncryptionPadding.OaepSHA512);
                 return encrypted;
             }
         }

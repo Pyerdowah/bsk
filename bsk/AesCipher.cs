@@ -130,11 +130,11 @@ namespace bsk
             }
             return new FileInfo("key.aes");
         }
-        public AesParams LoadKey(FileInfo file)
+        public AesParams LoadKey(byte[] aes)
         {
             AesParams ap;
             BinaryFormatter formatter = new BinaryFormatter();
-            using (FileStream stream = new FileStream(file.Name, FileMode.Open))
+            using (MemoryStream stream = new MemoryStream(aes))
             {
                 ap = (AesParams) formatter.Deserialize(stream);
             }
@@ -142,7 +142,7 @@ namespace bsk
         }
     }
 
-    internal class AesCipher
+    public class AesCipher
     {
         private const string decrFolder = "tmp/dec";
         private const string encFolder = "tmp/enc";
@@ -254,6 +254,19 @@ namespace bsk
         {
             aesParams.ComputeKeyFromPassword(password, aesParams);
             DecryptFile(file, aesParams);
+        }
+        
+        public byte[] EncryptPrivateKey(byte[] privateKey, AesParams aesParams, string password)
+        {
+            aesParams.sha = aesParams.ComputeSha(privateKey);
+            aesParams.ComputeKeyFromPassword(password, aesParams);
+            return EncryptByte(privateKey, aesParams);
+        }
+        
+        public byte[] DecryptPrivateKey(byte[] privateKey, AesParams aesParams, string password)
+        {
+            aesParams.ComputeKeyFromPassword(password, aesParams);
+            return DecryptByte(privateKey, aesParams);
         }
 
     }

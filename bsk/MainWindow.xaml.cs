@@ -29,8 +29,15 @@ namespace bsk
         Dictionary<Guid, DataModel> DataModels = new Dictionary<Guid, DataModel>();
         private DataPack dataPack;
         private CipherMode ciphermode = CipherMode.CBC;
+        private RsaCipher rsaCipher;
+        private AesCipher aesCipher;
+        private AesParams aesParams;
+        long counter = 0;
+        private AesParams sessionKey;
+        private byte[] sessionKeyBytesEnc;
+        private string login;
 
-        public MainWindow()
+        public MainWindow(RsaCipher rsaCipher, AesCipher aesCipher, AesParams aesParams, string login)
         {
             InitializeComponent();
             connect();
@@ -40,6 +47,10 @@ namespace bsk
             {
                 Directory.CreateDirectory("tmp");
             }
+            this.rsaCipher = rsaCipher;
+            this.aesCipher = aesCipher;
+            this.aesParams = aesParams;
+            sessionKeyBytesEnc = rsaCipher.Encrypt(aesParams.StoreKey());
         }
         
         private void connect()
@@ -94,6 +105,7 @@ namespace bsk
                     }
                     else
                     {
+                        buffer = aesCipher.DecryptByte(buffer, aesParams);
                         //guid
                         byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
                         Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
@@ -160,6 +172,22 @@ namespace bsk
         {
             if (buffer[0] == 1)
             {
+                this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
+                this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
+
+            }
+            else if (buffer[0] == 2)
+            {
+                if (login == "a")
+                {
+                    stream.Write(sessionKeyBytesEnc, 0, sessionKeyBytesEnc.Length);
+                }
+                if (login == "b")
+                {
+                    byte[] sessionKeyBytes = new byte[Constants.ONE_KB];
+                    stream.Read(sessionKeyBytes, 0, sessionKeyBytes.Length);
+                    sessionKey = aesParams.LoadKey(rsaCipher.Decrypt(sessionKeyBytes));
+                }
                 this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
                 this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
             }
@@ -236,7 +264,9 @@ namespace bsk
                 }
                 //TODO
                 //powinno byc tak, że zaszyfrowane są dane dotyczące
-                stream.Write(wholePacket, 0, wholePacket.Length); // wysyłanie paczki, zaraz przed tym powinno wlecieć jakieś szyfrowanie
+                sessionKey.cipherMode = ciphermode;
+                byte[] ciphertext = aesCipher.EncryptByte(wholePacket, sessionKey);
+                stream.Write(ciphertext, 0, ciphertext.Length); // wysyłanie paczki, zaraz przed tym powinno wlecieć jakieś szyfrowanie
                 while (true)
                 {
                     if (messageId == guid)

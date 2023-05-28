@@ -40,6 +40,7 @@ namespace server
         private Thread thread;
         private Thread availableThread;
         private static int ONE_KB = 4 * 1024; 
+        private static int previousClientCount = 0;
 
         public ClientHandler(TcpClient client)
         {
@@ -85,21 +86,29 @@ namespace server
         {
             while (client.Connected)
             {
+                int currentClientCount = Program.Clients.Count;
                 byte available;
-                if (Program.Clients.Count == 1)
+
+                if (currentClientCount == previousClientCount)
+                {
+                    // Brak zmiany liczby klientów
+                    continue;
+                }
+                else if (currentClientCount == 1)
                 {
                     available = 1;
                 }
-                else if (Program.Clients.Count > 1)
+                else if (currentClientCount > 1)
                 {
                     available = 2;
                 }
                 else
                 {
                     available = 0;
-                    
                 }
+
                 client.GetStream().WriteByte(available);
+                previousClientCount = currentClientCount;
                 Thread.Sleep(5000);
             }
         }
