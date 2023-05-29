@@ -161,14 +161,14 @@ namespace bsk
                 using (RSA rsa = RSA.Create(_other_public_key))
                 {
                     encryptedPart = rsa.Encrypt(temp, RSAEncryptionPadding.OaepSHA512);
-                    encrypted.Concat(encryptedPart).ToArray();
+                    encrypted = encrypted.Concat(encryptedPart).ToArray();
                 }
             }
             return encrypted;
         }
         public byte[] Decrypt(byte[] fileBytes)
         {
-            int blockSize = 126;
+            int blockSize = 256;
             byte[] decrypted = new byte[0];
             for (int i = 0; i < fileBytes.Length; i+= blockSize)
             {
@@ -179,7 +179,7 @@ namespace bsk
                 using (RSA rsa = RSA.Create(_my_private_key))
                 {
                     decryptedPart = rsa.Decrypt(temp, RSAEncryptionPadding.OaepSHA512);
-                    decrypted.Concat(decryptedPart).ToArray();
+                    decrypted = decrypted.Concat(decryptedPart).ToArray();
                 }
             }
             return decrypted;

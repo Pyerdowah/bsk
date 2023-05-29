@@ -32,7 +32,6 @@ namespace bsk
         private RsaCipher rsaCipher;
         private AesCipher aesCipher;
         private AesParams aesParams;
-        long counter = 0;
         private AesParams sessionKey;
         private byte[] sessionKeyBytesEnc;
         private string login;
@@ -40,6 +39,11 @@ namespace bsk
         public MainWindow(RsaCipher rsaCipher, AesCipher aesCipher, AesParams aesParams, string login)
         {
             InitializeComponent();
+            this.login = login;
+            this.rsaCipher = rsaCipher;
+            this.aesCipher = aesCipher;
+            this.aesParams = aesParams;
+            sessionKeyBytesEnc = rsaCipher.Encrypt(aesParams.StoreKey());
             connect();
             DataContext = this;
             progressBarWorker();
@@ -47,11 +51,7 @@ namespace bsk
             {
                 Directory.CreateDirectory("tmp");
             }
-            this.rsaCipher = rsaCipher;
-            this.aesCipher = aesCipher;
-            this.aesParams = aesParams;
-            sessionKeyBytesEnc = rsaCipher.Encrypt(aesParams.StoreKey());
-            this.login = login;
+            Title = this.login;
         }
         
         private void connect()
@@ -63,11 +63,12 @@ namespace bsk
 
                 ifConnected.Text = "Połączono z serwerem na porcie " + client.Client.RemoteEndPoint;
                 send.IsEnabled = true;
-
+                
+                stream = client.GetStream();
+                
                 Thread receiveThread = new Thread(() => receiveMessages(client));
                 receiveThread.Start();
-
-                stream = client.GetStream();
+                
             }
             catch (Exception ex)
             {
@@ -85,8 +86,8 @@ namespace bsk
 
         private void receiveMessages(TcpClient client)
         {
-            try
-            {
+          /*  try
+            {*/
                 while (client.Connected)
                 {
                     // Odbierz dane pliku
@@ -106,7 +107,7 @@ namespace bsk
                     }
                     else
                     {
-                        buffer = aesCipher.DecryptByte(buffer, aesParams);
+                        buffer = aesCipher.DecryptByte(buffer, sessionKey);
                         //guid
                         byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
                         Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
@@ -161,33 +162,41 @@ namespace bsk
                         stream.Write(guidInBytes, 0, guidInBytes.Length);
                     }
                 }
-            }
+           /* }
             catch (Exception e)
             {
                 this.Dispatcher.Invoke(() =>
                     Messages.Add(new DataModel("Błąd podczas otrzymywania wiadomości od serwera: " + e.Message)));
-            }
+            }*/
         }
 
         private void setAvailability(byte[] buffer)
         {
             if (buffer[0] == 1)
             {
-                this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
-                this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
                 if (login == "a")
                 {
-                    stream.Write(sessionKeyBytesEnc, 0, sessionKeyBytesEnc.Length);
+                    this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
+                    this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
+                    if (sessionKey == null)
+                    {
+                        sessionKey = aesParams;
+                        stream.Write(sessionKeyBytesEnc, 0, sessionKeyBytesEnc.Length);
+                    }
                 }
-                if (login == "b")
+                if (sessionKey == null && login == "b")
                 {
-                    byte[] sessionKeyBytes = new byte[Constants.ONE_KB];
+                    byte[] sessionKeyBytes = new byte[1024];
                     stream.Read(sessionKeyBytes, 0, sessionKeyBytes.Length);
                     sessionKey = aesParams.LoadKey(rsaCipher.Decrypt(sessionKeyBytes));
+                    sessionKey.StoreKey2();
+                    this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
+                    this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
                 }
             }
             else
             {
+                sessionKey = null;
                 this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Collapsed);
                 this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Visible);
             }
@@ -205,11 +214,6 @@ namespace bsk
             else
             {
                 message = textBox.Text;
-                byte[] buffer = Encoding.UTF8.GetBytes(message);
-                AesParams ap = new AesParams(ciphermode);
-                AesCipher aes = new AesCipher();
-                byte[] encrypted = aes.EncryptByte(buffer, ap);
-                message = Encoding.UTF8.GetString(encrypted);
                 dataPack.prepareHeaderToSend(message, false);
                 textBox.Clear();
             }

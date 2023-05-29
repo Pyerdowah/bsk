@@ -15,7 +15,7 @@ namespace bsk
         public const int ivSize = blockSize / BitsPerByte;
         public const int iterations = 300;
         public const int blockSize = 128;
-        public const PaddingMode Padding = PaddingMode.PKCS7;
+        public const PaddingMode Padding = PaddingMode.None;
         public const int BitsPerByte = 8;
 
         public readonly byte[] salt = { 10, 20, 30, 40, 50, 60, 70, 80 };
@@ -130,6 +130,16 @@ namespace bsk
             }
             return new FileInfo("key.aes");
         }
+        
+        public FileInfo StoreKey2()
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            using (FileStream stream = new FileStream("key2.aes", FileMode.Create))
+            {
+                formatter.Serialize(stream, this);
+            }
+            return new FileInfo("key2.aes");
+        }
         public AesParams LoadKey(byte[] aes)
         {
             AesParams ap;
@@ -157,7 +167,7 @@ namespace bsk
         public byte[] EncryptByte(byte[] buffer, AesParams aesParams)
         {
             Aes aes = aesParams.InstantiateAes();
-            aes.Padding = PaddingMode.PKCS7;
+            aes.Padding = PaddingMode.Zeros;
             aes.BlockSize = AesParams.blockSize;
             ICryptoTransform encryptor;
             if (aesParams.cipherMode == CipherMode.CBC)
@@ -175,7 +185,7 @@ namespace bsk
         public byte[] DecryptByte(byte[] buffer, AesParams aesParams)
         {
             Aes aes = aesParams.InstantiateAes();
-            aes.Padding = PaddingMode.PKCS7;
+            aes.Padding = PaddingMode.Zeros;
             aes.BlockSize = AesParams.blockSize;
             ICryptoTransform decryptor;
             if (aesParams.cipherMode == CipherMode.CBC)
