@@ -61,7 +61,7 @@ namespace bsk
                 TcpClient client = new TcpClient();
                 client.Connect(IPAddress.Loopback, 1234);
 
-                ifConnected.Text = "Połączono z serwerem na porcie " + client.Client.RemoteEndPoint;
+                ifConnected.Text = "Connected with server on port: " + client.Client.RemoteEndPoint;
                 send.IsEnabled = true;
                 
                 stream = client.GetStream();
@@ -114,7 +114,7 @@ namespace bsk
             catch (Exception e)
             {
                 this.Dispatcher.Invoke(() =>
-                    Messages.Add(new DataModel("Błąd podczas otrzymywania wiadomości od serwera: " + e.Message)));
+                    Messages.Add(new DataModel("Error while processing messages from server: " + e.Message)));
             }
         }
 
@@ -324,7 +324,7 @@ namespace bsk
                 {
                     file_name_box.Text = _fName;
                     fileChosen.Foreground = Brushes.Yellow;
-                    fileChosen.Text = "wybrano plik";
+                    fileChosen.Text = "file is chosen";
                 }
             }
         }

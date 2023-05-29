@@ -43,7 +43,7 @@ namespace bsk
         {
             if (PasswordBox.Password == "")
             {
-                correctPassword.Text = "Pole z hasłem nie może być puste!";
+                correctPassword.Text = "Password cannot be blank!";
             }
             else
             {
@@ -69,7 +69,7 @@ namespace bsk
                 }
                 catch (Exception)
                 {
-                    correctPassword.Text = "Zły login lub hasło!";
+                    correctPassword.Text = "Bad login or password!";
                     correctPassword.Foreground = Brushes.Red;
                 }
             }
@@ -80,14 +80,14 @@ namespace bsk
         {
             if (PasswordBox.Password == "" || PasswordBox.Password == null)
             {
-                correctPassword.Text = "Pole z hasłem nie może być puste!";
+                correctPassword.Text = "Password cannot be blank!";
             }
             else
             {
                 rsaCipher.ExportPublicKeyToFile("tmp/pub/" + LoginBox.Text + ".pub");
                 byte[] key = aesCipher.EncryptPrivateKey(rsaCipher.ExportPrivateKey(), aesParams, PasswordBox.Password);
                 rsaCipher.ExportPrivateKeyToFile(key, "tmp/priv/" + LoginBox.Text + ".enc");
-                correctPassword.Text = "Utworzono parę kluczy. Teraz odszyfruj klucz prywatny wprowadzonym hasłem";
+                correctPassword.Text = "RSA key pair was created. You can decrypt your private key with password now.";
                 correctPassword.Foreground = Brushes.Green;
             }
             correctPassword.Visibility = Visibility.Visible;

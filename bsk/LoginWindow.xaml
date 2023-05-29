@@ -14,7 +14,7 @@
                <LineBreak /> or create a new one and encrypt with typed password.
             </TextBlock>
 
-            <TextBlock x:Name="correctPassword" TextElement.Foreground="Red" FontSize="20" HorizontalAlignment="Center" IsEnabled="False" Visibility="Hidden" Margin="0 40 0 10">Złe hasło!</TextBlock>
+            <TextBlock x:Name="correctPassword" TextElement.Foreground="Red" FontSize="20" HorizontalAlignment="Center" IsEnabled="False" Visibility="Hidden" Margin="0 40 0 10">Bad password!</TextBlock>
             <TextBox x:Name="LoginBox" FontSize="24" Height="40" Width="300" Margin="0 0 0 10"></TextBox>
             <PasswordBox x:Name="PasswordBox" FontSize="24" Height="40" Width="300"></PasswordBox>
         </StackPanel> 
