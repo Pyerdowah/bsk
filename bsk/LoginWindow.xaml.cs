@@ -47,8 +47,8 @@ namespace bsk
             }
             else
             {
-              /*  try
-                {*/
+                try
+                {
                     byte[] key = aesCipher.DecryptPrivateKey(rsaCipher.ImportPrivateKeyFromFile("tmp/priv/" + LoginBox.Text + ".enc"),
                         aesParams, PasswordBox.Password);
                     rsaCipher.ImportPrivateKey(key);
@@ -66,12 +66,12 @@ namespace bsk
                     MainWindow mainWindow = new MainWindow(rsaCipher, aesCipher, aesParams, login);
                     mainWindow.Show();
                     this.Close();
-            /*    }
+                }
                 catch (Exception)
                 {
                     correctPassword.Text = "Zły login lub hasło!";
                     correctPassword.Foreground = Brushes.Red;
-                }*/
+                }
             }
             correctPassword.Visibility = Visibility.Visible;
         }

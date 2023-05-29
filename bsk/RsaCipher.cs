@@ -149,19 +149,40 @@ namespace bsk
                 fileBytes = new byte[stream.Length];
                 stream.Read(fileBytes, 0, fileBytes.Length);
             }
-            using (RSA rsa = RSA.Create(_other_public_key))
+
+            int blockSize = 126;
+            byte[] encrypted = new byte[0];
+            for (int i = 0; i < fileBytes.Length; i+= blockSize)
             {
-                byte[] encrypted = rsa.Encrypt(fileBytes, RSAEncryptionPadding.OaepSHA512);
-                return encrypted;
+                byte[] encryptedPart;
+                long chunkSize = (fileBytes.Length - i > blockSize) ? blockSize : fileBytes.Length - i;
+                byte[] temp = new byte[chunkSize];
+                Array.Copy(fileBytes, i, temp, 0, chunkSize);
+                using (RSA rsa = RSA.Create(_other_public_key))
+                {
+                    encryptedPart = rsa.Encrypt(temp, RSAEncryptionPadding.OaepSHA512);
+                    encrypted.Concat(encryptedPart).ToArray();
+                }
             }
+            return encrypted;
         }
-        public byte[] Decrypt(byte[] arg)
+        public byte[] Decrypt(byte[] fileBytes)
         {
-            using (RSA rsa = RSA.Create(_my_private_key))
+            int blockSize = 126;
+            byte[] decrypted = new byte[0];
+            for (int i = 0; i < fileBytes.Length; i+= blockSize)
             {
-                byte[] decrypted = rsa.Decrypt(arg, RSAEncryptionPadding.OaepSHA512);
-                return decrypted;
+                byte[] decryptedPart;
+                long chunkSize = (fileBytes.Length - i > blockSize) ? blockSize : fileBytes.Length - i;
+                byte[] temp = new byte[chunkSize];
+                Array.Copy(fileBytes, i, temp, 0, chunkSize);
+                using (RSA rsa = RSA.Create(_my_private_key))
+                {
+                    decryptedPart = rsa.Decrypt(temp, RSAEncryptionPadding.OaepSHA512);
+                    decrypted.Concat(decryptedPart).ToArray();
+                }
             }
+            return decrypted;
         }
 
     }

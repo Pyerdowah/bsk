@@ -51,6 +51,7 @@ namespace bsk
             this.aesCipher = aesCipher;
             this.aesParams = aesParams;
             sessionKeyBytesEnc = rsaCipher.Encrypt(aesParams.StoreKey());
+            this.login = login;
         }
         
         private void connect()
@@ -174,10 +175,6 @@ namespace bsk
             {
                 this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
                 this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
-
-            }
-            else if (buffer[0] == 2)
-            {
                 if (login == "a")
                 {
                     stream.Write(sessionKeyBytesEnc, 0, sessionKeyBytesEnc.Length);
@@ -188,8 +185,6 @@ namespace bsk
                     stream.Read(sessionKeyBytes, 0, sessionKeyBytes.Length);
                     sessionKey = aesParams.LoadKey(rsaCipher.Decrypt(sessionKeyBytes));
                 }
-                this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
-                this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
             }
             else
             {

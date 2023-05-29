@@ -94,22 +94,16 @@ namespace server
                     // Brak zmiany liczby klientów
                     continue;
                 }
-                else if (currentClientCount == 1)
+                if (currentClientCount > 1)
                 {
                     available = 1;
-                }
-                else if (currentClientCount > 1)
-                {
-                    available = 2;
                 }
                 else
                 {
                     available = 0;
                 }
-
                 client.GetStream().WriteByte(available);
                 previousClientCount = currentClientCount;
-                Thread.Sleep(5000);
             }
         }
     }
