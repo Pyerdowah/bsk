@@ -86,8 +86,8 @@ namespace bsk
 
         private void receiveMessages(TcpClient client)
         {
-          /*  try
-            {*/
+            try
+            {
                 while (client.Connected)
                 {
                     // Odbierz dane pliku
@@ -107,67 +107,89 @@ namespace bsk
                     }
                     else
                     {
-                        buffer = aesCipher.DecryptByte(buffer, sessionKey);
-                        //guid
-                        byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
-                        Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
-
-                        //guid całej wiadomosci
-                        byte[] messageGuidIdInBytes = new byte[Constants.GUID_BYTES_NUMBER];
-                        Array.Copy(buffer, 16, messageGuidIdInBytes, 0, messageGuidIdInBytes.Length);
-                        Guid messageGuidId = new Guid(messageGuidIdInBytes);
-                        
-                        //extension
-                        byte[] extensionInBytes = new byte[Constants.EXTENSION_BYTES_NUMBER];
-                        Array.Copy(buffer, 32, extensionInBytes, 0, extensionInBytes.Length);
-                        long extension = BitConverter.ToInt64(extensionInBytes, 0);
-                        
-                        //wielkość pliku
-                        byte[] fileSizeInBytes = new byte[Constants.FILE_SIZE_BYTES_NUMBER];
-                        Array.Copy(buffer, 40, fileSizeInBytes, 0, fileSizeInBytes.Length);
-                        long fileSize = BitConverter.ToInt64(fileSizeInBytes, 0);
-                        
-                        //liczba paczek
-                        byte[] packetsNumberInBytes = new byte[Constants.PACKETS_NUMBER_BYTES_NUMBER];
-                        Array.Copy(buffer, 48, packetsNumberInBytes, 0, packetsNumberInBytes.Length);
-                        long packetsNumber = BitConverter.ToInt64(packetsNumberInBytes, 0);
-                        
-                        //numer paczki
-                        byte[] packetNumberInBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
-                        Array.Copy(buffer, 56, packetNumberInBytes, 0, packetNumberInBytes.Length);
-                        int packetNumber = BitConverter.ToInt32(packetNumberInBytes, 0);
-                        
-                        //czesc pliku co przyszla z paczką
-                        bytesRead -= Constants.HEADER_BYTES_NUMBER;
-                        byte[] file = new byte[bytesRead];
-                        Array.Copy(buffer, Constants.HEADER_BYTES_NUMBER, file, 0, bytesRead);
-                        
-                        if (packetNumber == 0)
-                        {
-                            string filePath = "tmp/" + messageGuidId + "." +
-                                              ExtensionMethods.getExtensionFromLongValue(extension);
-                            DataModels[messageGuidId] = new DataModel(file, extension, filePath);
-                        }
-                        if (DataModels[messageGuidId].extension != Extensions.TEXT)
-                        {
-                            using (FileStream fileStream = new FileStream(DataModels[messageGuidId].filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-                            {
-                                fileStream.Write(file, 0, file.Length);
-                            }
-                        }
-                        if (packetNumber + 1 == packetsNumber)
-                        {
-                            this.Dispatcher.Invoke(() => Messages.Add(DataModels[messageGuidId]));
-                        }
-                        stream.Write(guidInBytes, 0, guidInBytes.Length);
+                        processBigPacket(buffer, bytesRead);
                     }
                 }
-           /* }
+            }
             catch (Exception e)
             {
                 this.Dispatcher.Invoke(() =>
                     Messages.Add(new DataModel("Błąd podczas otrzymywania wiadomości od serwera: " + e.Message)));
-            }*/
+            }
+        }
+
+        private void processBigPacket(byte[] buffer, int bytesRead)
+        {
+                buffer = aesCipher.DecryptByte(buffer, sessionKey);
+                //guid
+                byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+                Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
+
+                //guid całej wiadomosci
+                byte[] messageGuidIdInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+                Array.Copy(buffer, 16, messageGuidIdInBytes, 0, messageGuidIdInBytes.Length);
+                Guid messageGuidId = new Guid(messageGuidIdInBytes);
+                
+                //extension
+                byte[] extensionInBytes = new byte[Constants.EXTENSION_BYTES_NUMBER];
+                Array.Copy(buffer, 32, extensionInBytes, 0, extensionInBytes.Length);
+                long extension = BitConverter.ToInt64(extensionInBytes, 0);
+                
+                //wielkość pliku
+                byte[] fileSizeInBytes = new byte[Constants.FILE_SIZE_BYTES_NUMBER];
+                Array.Copy(buffer, 40, fileSizeInBytes, 0, fileSizeInBytes.Length);
+                long fileSize = BitConverter.ToInt64(fileSizeInBytes, 0);
+                
+                //liczba paczek
+                byte[] packetsNumberInBytes = new byte[Constants.PACKETS_NUMBER_BYTES_NUMBER];
+                Array.Copy(buffer, 48, packetsNumberInBytes, 0, packetsNumberInBytes.Length);
+                long packetsNumber = BitConverter.ToInt64(packetsNumberInBytes, 0);
+                
+                //numer paczki
+                byte[] packetNumberInBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
+                Array.Copy(buffer, 56, packetNumberInBytes, 0, packetNumberInBytes.Length);
+                int packetNumber = BitConverter.ToInt32(packetNumberInBytes, 0);
+                
+                //czesc pliku co przyszla z paczką
+                bytesRead -= Constants.HEADER_BYTES_NUMBER;
+                byte[] file = new byte[bytesRead];
+                Array.Copy(buffer, Constants.HEADER_BYTES_NUMBER, file, 0, bytesRead);
+
+                try
+                {
+                    if (packetNumber == 0)
+                    {
+                        string filePath = "tmp/" + messageGuidId + "." +
+                                          ExtensionMethods.getExtensionFromLongValue(extension);
+                        DataModels[messageGuidId] = new DataModel(file, extension, filePath);
+                    }
+
+                    if (DataModels[messageGuidId].extension != Extensions.TEXT)
+                    {
+                        using (FileStream fileStream = new FileStream(DataModels[messageGuidId].filePath,
+                                   FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                        {
+                            fileStream.Write(file, 0, file.Length);
+                        }
+                    }
+                    if (packetNumber + 1 == packetsNumber)
+                    {
+                        this.Dispatcher.Invoke(() => Messages.Add(DataModels[messageGuidId]));
+                    }
+                    stream.Write(guidInBytes, 0, guidInBytes.Length);
+                }
+                catch (Exception)
+                {
+                    if (ciphermode == CipherMode.CBC)
+                    {
+                        ciphermode = CipherMode.ECB;
+                    }
+                    else
+                    {
+                        ciphermode = CipherMode.CBC;
+                    }
+                    processBigPacket(buffer, bytesRead);
+                }
         }
 
         private void setAvailability(byte[] buffer)
@@ -341,74 +363,5 @@ namespace bsk
         {
             ciphermode = CipherMode.CBC;
         }
-
-
-        /*
-       private void start_button_Click(object sender, RoutedEventArgs e)
-       {
-           if (_fName != "")
-           {
-
-               error_name_box.Foreground = Brushes.LightGreen;
-               error_name_box.Visibility = Visibility.Collapsed;
-               error_name_box.Text = "sukces";
-
-               int err = -1;
-               int decryptError = 0;
-
-               if(error_byte.Text != "")
-               {
-                   err = Int32.Parse(error_byte.Text);
-               }
-
-               Cryptography cryptography = new Cryptography();
-
-               if (ecb.IsChecked == true)
-               {
-                   decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.ECB, password.Password, err);
-               }
-               else if (cbc.IsChecked == true)
-               {
-                   decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.CBC, password.Password, err);
-               }
-               else if (cfb.IsChecked == true)
-               {
-                   decryptError = cryptography.Cipher((bool)decipher.IsChecked, _fName, CipherMode.CFB, password.Password, err);
-               }
-               else
-               {
-                   MessageBox.Show("Wystąpił błąd przy wybieraniu trybu.", " ",
-                       MessageBoxButton.OK, MessageBoxImage.Error);
-               }
-
-               switch (decryptError)
-               {
-                   case -1:
-                       MessageBox.Show("Wystąpił błąd przy odczycie parametrów deszyfrowania.\nPodano niepoprawny tryb lub hasło.", 
-                           " ",
-                           MessageBoxButton.OK, MessageBoxImage.Error);
-                       return;
-                   case -2:
-                       MessageBox.Show("Miała miejsce nieautoryzowana zmiana w pliku.", 
-                           " ",
-                           MessageBoxButton.OK, MessageBoxImage.Error);
-                       return;
-                   case -3:
-                       MessageBox.Show("Suma kontrolna się nie zgadza.", " ",
-                           MessageBoxButton.OK, MessageBoxImage.Error);
-                       return;
-
-               }
-
-               error_name_box.Visibility = Visibility.Visible;
-
-
-           }
-       }
-       private void PreviewTextInput(object sender, TextCompositionEventArgs e)
-       {
-           Regex regex = new Regex("[^0-9]+");
-           e.Handled = regex.IsMatch(e.Text);
-       }*/
     }
 }
