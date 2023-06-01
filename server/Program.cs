@@ -88,12 +88,7 @@ namespace server
             {
                 int currentClientCount = Program.Clients.Count;
                 byte available;
-
-               /* if (currentClientCount == previousClientCount)
-                {
-                    // Brak zmiany liczby klientów
-                    continue;
-                }*/
+                
                 if (currentClientCount > 1)
                 {
                     available = 1;
@@ -104,7 +99,6 @@ namespace server
                 }
                 client.GetStream().WriteByte(available);
                 Thread.Sleep(5000);
-               // previousClientCount = currentClientCount;
             }
         }
     }

@@ -63,6 +63,7 @@ namespace bsk
                     }
 
                     string login = LoginBox.Text;
+                    aesParams = new AesParams(CipherMode.CBC);
                     MainWindow mainWindow = new MainWindow(rsaCipher, aesCipher, aesParams, login);
                     mainWindow.Show();
                     this.Close();

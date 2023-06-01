@@ -35,6 +35,7 @@ namespace bsk
         private AesParams sessionKey;
         private byte[] sessionKeyBytesEnc;
         private string login;
+        private byte[] processedBuffer;
 
         public MainWindow(RsaCipher rsaCipher, AesCipher aesCipher, AesParams aesParams, string login)
         {
@@ -107,7 +108,8 @@ namespace bsk
                     }
                     else
                     {
-                        processBigPacket(buffer, bytesRead);
+                        processedBuffer = buffer;
+                        processBigPacket(processedBuffer, bytesRead);
                     }
                 }
             }
@@ -120,76 +122,76 @@ namespace bsk
 
         private void processBigPacket(byte[] buffer, int bytesRead)
         {
-                buffer = aesCipher.DecryptByte(buffer, sessionKey);
-                //guid
-                byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
-                Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
+            buffer = aesCipher.DecryptByte(buffer, sessionKey);
+            //guid
+            byte[] guidInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+            Array.Copy(buffer, 0, guidInBytes, 0, guidInBytes.Length);
 
-                //guid całej wiadomosci
-                byte[] messageGuidIdInBytes = new byte[Constants.GUID_BYTES_NUMBER];
-                Array.Copy(buffer, 16, messageGuidIdInBytes, 0, messageGuidIdInBytes.Length);
-                Guid messageGuidId = new Guid(messageGuidIdInBytes);
-                
-                //extension
-                byte[] extensionInBytes = new byte[Constants.EXTENSION_BYTES_NUMBER];
-                Array.Copy(buffer, 32, extensionInBytes, 0, extensionInBytes.Length);
-                long extension = BitConverter.ToInt64(extensionInBytes, 0);
-                
-                //wielkość pliku
-                byte[] fileSizeInBytes = new byte[Constants.FILE_SIZE_BYTES_NUMBER];
-                Array.Copy(buffer, 40, fileSizeInBytes, 0, fileSizeInBytes.Length);
-                long fileSize = BitConverter.ToInt64(fileSizeInBytes, 0);
-                
-                //liczba paczek
-                byte[] packetsNumberInBytes = new byte[Constants.PACKETS_NUMBER_BYTES_NUMBER];
-                Array.Copy(buffer, 48, packetsNumberInBytes, 0, packetsNumberInBytes.Length);
-                long packetsNumber = BitConverter.ToInt64(packetsNumberInBytes, 0);
-                
-                //numer paczki
-                byte[] packetNumberInBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
-                Array.Copy(buffer, 56, packetNumberInBytes, 0, packetNumberInBytes.Length);
-                int packetNumber = BitConverter.ToInt32(packetNumberInBytes, 0);
-                
-                //czesc pliku co przyszla z paczką
-                bytesRead -= Constants.HEADER_BYTES_NUMBER;
-                byte[] file = new byte[bytesRead];
-                Array.Copy(buffer, Constants.HEADER_BYTES_NUMBER, file, 0, bytesRead);
+            //guid całej wiadomosci
+            byte[] messageGuidIdInBytes = new byte[Constants.GUID_BYTES_NUMBER];
+            Array.Copy(buffer, 16, messageGuidIdInBytes, 0, messageGuidIdInBytes.Length);
+            Guid messageGuidId = new Guid(messageGuidIdInBytes);
+            
+            //extension
+            byte[] extensionInBytes = new byte[Constants.EXTENSION_BYTES_NUMBER];
+            Array.Copy(buffer, 32, extensionInBytes, 0, extensionInBytes.Length);
+            long extension = BitConverter.ToInt64(extensionInBytes, 0);
+            
+            //wielkość pliku
+            byte[] fileSizeInBytes = new byte[Constants.FILE_SIZE_BYTES_NUMBER];
+            Array.Copy(buffer, 40, fileSizeInBytes, 0, fileSizeInBytes.Length);
+            long fileSize = BitConverter.ToInt64(fileSizeInBytes, 0);
+            
+            //liczba paczek
+            byte[] packetsNumberInBytes = new byte[Constants.PACKETS_NUMBER_BYTES_NUMBER];
+            Array.Copy(buffer, 48, packetsNumberInBytes, 0, packetsNumberInBytes.Length);
+            long packetsNumber = BitConverter.ToInt64(packetsNumberInBytes, 0);
+            
+            //numer paczki
+            byte[] packetNumberInBytes = new byte[Constants.PACKET_NUMBER_BYTES_NUMBER];
+            Array.Copy(buffer, 56, packetNumberInBytes, 0, packetNumberInBytes.Length);
+            int packetNumber = BitConverter.ToInt32(packetNumberInBytes, 0);
+            
+            //czesc pliku co przyszla z paczką
+            bytesRead -= Constants.HEADER_BYTES_NUMBER;
+            byte[] file = new byte[bytesRead];
+            Array.Copy(buffer, Constants.HEADER_BYTES_NUMBER, file, 0, bytesRead);
 
-                try
+            try
+            {
+                if (packetNumber == 0)
                 {
-                    if (packetNumber == 0)
-                    {
-                        string filePath = "tmp/" + messageGuidId + "." +
-                                          ExtensionMethods.getExtensionFromLongValue(extension);
-                        DataModels[messageGuidId] = new DataModel(file, extension, filePath);
-                    }
+                    string filePath = "tmp/" + messageGuidId + "." +
+                                      ExtensionMethods.getExtensionFromLongValue(extension);
+                    DataModels[messageGuidId] = new DataModel(file, extension, filePath);
+                }
 
-                    if (DataModels[messageGuidId].extension != Extensions.TEXT)
-                    {
-                        using (FileStream fileStream = new FileStream(DataModels[messageGuidId].filePath,
-                                   FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-                        {
-                            fileStream.Write(file, 0, file.Length);
-                        }
-                    }
-                    if (packetNumber + 1 == packetsNumber)
-                    {
-                        this.Dispatcher.Invoke(() => Messages.Add(DataModels[messageGuidId]));
-                    }
-                    stream.Write(guidInBytes, 0, guidInBytes.Length);
-                }
-                catch (Exception)
+                if (DataModels[messageGuidId].extension != Extensions.TEXT)
                 {
-                    if (ciphermode == CipherMode.CBC)
+                    using (FileStream fileStream = new FileStream(DataModels[messageGuidId].filePath,
+                               FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
                     {
-                        ciphermode = CipherMode.ECB;
+                        fileStream.Write(file, 0, file.Length);
                     }
-                    else
-                    {
-                        ciphermode = CipherMode.CBC;
-                    }
-                    processBigPacket(buffer, bytesRead);
                 }
+                if (packetNumber + 1 == packetsNumber)
+                {
+                    this.Dispatcher.Invoke(() => Messages.Add(DataModels[messageGuidId]));
+                }
+                stream.Write(guidInBytes, 0, guidInBytes.Length);
+            }
+            catch (Exception)
+            {
+                if (sessionKey.cipherMode == CipherMode.CBC)
+                {
+                    sessionKey.cipherMode = CipherMode.ECB;
+                }
+                else
+                {
+                    sessionKey.cipherMode = CipherMode.CBC;
+                }
+                processBigPacket(processedBuffer, bytesRead + Constants.HEADER_BYTES_NUMBER);
+            }
         }
 
         private void setAvailability(byte[] buffer)
@@ -211,7 +213,6 @@ namespace bsk
                     byte[] sessionKeyBytes = new byte[1024];
                     stream.Read(sessionKeyBytes, 0, sessionKeyBytes.Length);
                     sessionKey = aesParams.LoadKey(rsaCipher.Decrypt(sessionKeyBytes));
-                    sessionKey.StoreKey2();
                     this.Dispatcher.Invoke(() => unavailabilityIcon.Visibility = Visibility.Collapsed);
                     this.Dispatcher.Invoke(() => availabilityIcon.Visibility = Visibility.Visible);
                 }
@@ -283,8 +284,7 @@ namespace bsk
                     byte[] textData = Encoding.GetEncoding(28592).GetBytes(dataPack.filePath);
                     wholePacket = wholeHeader.Concat(textData).ToArray();
                 }
-                //TODO
-                //powinno byc tak, że zaszyfrowane są dane dotyczące
+
                 sessionKey.cipherMode = ciphermode;
                 byte[] ciphertext = aesCipher.EncryptByte(wholePacket, sessionKey);
                 stream.Write(ciphertext, 0, ciphertext.Length); // wysyłanie paczki, zaraz przed tym powinno wlecieć jakieś szyfrowanie

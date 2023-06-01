@@ -66,11 +66,8 @@ namespace bsk
             {
                 rng.GetBytes(randomBytes);
             }
-            string password = Convert.ToBase64String(randomBytes)
-                                .Replace('+', '-')
-                                .Replace('/', '_')
-                                .Replace("=", "");
-            ComputeKeyFromPassword(password, this);
+            string random = Guid.NewGuid().ToString();
+            ComputeKeyFromPassword(random, this);
         }
 
         public byte[] ComputeSha(FileInfo file)
@@ -131,15 +128,6 @@ namespace bsk
             return new FileInfo("key.aes");
         }
         
-        public FileInfo StoreKey2()
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            using (FileStream stream = new FileStream("key2.aes", FileMode.Create))
-            {
-                formatter.Serialize(stream, this);
-            }
-            return new FileInfo("key2.aes");
-        }
         public AesParams LoadKey(byte[] aes)
         {
             AesParams ap;
