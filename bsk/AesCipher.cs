@@ -48,14 +48,7 @@ namespace bsk
             this.fileName = file.Name;
             ComputeKeyFromPassword(password, this);
         }
-
-        //public AesParams(CipherMode cipherMode, string password = "test")
-        //{
-        //    this.cipherMode = cipherMode;
-        //    this.sha = null;
-        //    this.fileName = null;
-        //    ComputeKeyFromPassword(password, this);
-        //}
+        
         public AesParams(CipherMode cipherMode)
         {
             this.cipherMode = cipherMode;

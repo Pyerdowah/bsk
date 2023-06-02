@@ -287,7 +287,7 @@ namespace bsk
 
                 sessionKey.cipherMode = ciphermode;
                 byte[] ciphertext = aesCipher.EncryptByte(wholePacket, sessionKey);
-                stream.Write(ciphertext, 0, ciphertext.Length); // wysyłanie paczki, zaraz przed tym powinno wlecieć jakieś szyfrowanie
+                stream.Write(ciphertext, 0, ciphertext.Length);
                 while (true)
                 {
                     if (messageId == guid)
