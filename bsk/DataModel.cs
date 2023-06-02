@@ -20,7 +20,7 @@ namespace bsk
             }
             else
             {
-                this.textMessage = "Otrzymano plik " + ExtensionMethods.toString(this.extension) + ".";
+                this.textMessage = "Received " + ExtensionMethods.toString(this.extension) + " file.";
                 this.filePath = filePath;
             }
         }

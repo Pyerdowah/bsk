@@ -93,7 +93,7 @@ namespace bsk
                 {
                     // Odbierz dane pliku
                     byte[] buffer = new byte[Constants.ONE_KB];
-                    int bytesRead = stream.Read(buffer, 0, buffer.Length); // po tym powinno być jakieś odszyfrowywanie
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
                     
                     
                     if (bytesRead == 1) // taka mała paczka oznacza wiadomość o dostępności
