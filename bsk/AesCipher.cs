@@ -54,13 +54,11 @@ namespace bsk
             this.cipherMode = cipherMode;
             this.sha = null;
             this.fileName = null;
-            byte[] randomBytes = new byte[32];
-            using (var rng = new RNGCryptoServiceProvider())
+            using (AesCryptoServiceProvider aesProvider = new AesCryptoServiceProvider())
             {
-                rng.GetBytes(randomBytes);
-            }
-            string random = Guid.NewGuid().ToString();
-            ComputeKeyFromPassword(random, this);
+                aesProvider.GenerateKey();
+                ComputeKeyFromPassword(Encoding.UTF8.GetString(aesProvider.Key), this);
+            }     
         }
 
         public byte[] ComputeSha(FileInfo file)

@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bsk", "bsk\bsk.csproj", "{6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "server", "server\server.csproj", "{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testy", "testy\testy.csproj", "{52F8113D-7063-4C9F-9252-CAD02415F53A}"
-EndProject
 Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "bsk — kopia", "bsk\bin\Debug\bsk — kopia.exe", "{86E46A24-6776-4E5F-A5F1-D31EE580274D}"
 	ProjectSection(DebuggerProjectSystem) = preProject
 		PortSupplier = 00000000-0000-0000-0000-000000000000
@@ -47,14 +45,6 @@ Global
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|x64.ActiveCfg = Release|Any CPU
 		{37BC5448-03F2-404D-A2D9-DA8BBD0AA4F6}.Release|x64.Build.0 = Release|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Debug|x64.Build.0 = Debug|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|x64.ActiveCfg = Release|Any CPU
-		{52F8113D-7063-4C9F-9252-CAD02415F53A}.Release|x64.Build.0 = Release|Any CPU
 		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Debug|Any CPU.ActiveCfg = Release|x64
 		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Debug|x64.ActiveCfg = Release|x64
 		{86E46A24-6776-4E5F-A5F1-D31EE580274D}.Release|Any CPU.ActiveCfg = Release|x64
