@@ -11,6 +11,7 @@ namespace server
     class Program
     {
         public static readonly List<TcpClient> Clients = new List<TcpClient>();
+
         static void Main(string[] args)
         {
             // create a TCP listener on port 1234
@@ -40,7 +41,8 @@ namespace server
         private Thread thread;
         private Thread availableThread;
         private static int ONE_KB = 4 * 1024; 
-        private static int previousClientCount = 0;
+        private int previousClientCount = 0;
+        private int clientCount = 0;
 
         public ClientHandler(TcpClient client)
         {
@@ -86,18 +88,21 @@ namespace server
         {
             while (client.Connected)
             {
-                int currentClientCount = Program.Clients.Count;
-                byte available;
-                
-                if (currentClientCount > 1)
+                clientCount = Program.Clients.Count;
+                if(previousClientCount != clientCount)
                 {
-                    available = 1;
+                    byte available;
+                    if (clientCount > 1)
+                    {
+                        available = 1;
+                    }
+                    else
+                    {
+                        available = 0;
+                    }
+                    client.GetStream().WriteByte(available);
                 }
-                else
-                {
-                    available = 0;
-                }
-                client.GetStream().WriteByte(available);
+                previousClientCount = clientCount;
                 Thread.Sleep(5000);
             }
         }
