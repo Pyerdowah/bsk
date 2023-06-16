@@ -9,43 +9,26 @@
     <Grid Background="#bfaa8c">
 
         <StackPanel Margin="10">
-           <!-- <Label HorizontalAlignment="Center">Tryb</Label>
-            <RadioButton GroupName="mode" x:Name ="ecb" IsChecked="True" HorizontalAlignment="Center">ECB</RadioButton>
-            <RadioButton GroupName="mode" x:Name ="cbc" HorizontalAlignment="Center">CBC</RadioButton>
-            <RadioButton GroupName="mode" x:Name ="cfb" HorizontalAlignment="Center">CFB</RadioButton>
-            <Label HorizontalAlignment="Center">Szyfr</Label>
-            <RadioButton GroupName="cipher" x:Name ="cipher" IsChecked="True" HorizontalAlignment="Center">Szyfrowanie</RadioButton>
-            <RadioButton GroupName="cipher" x:Name ="decipher" HorizontalAlignment="Center">Deszyfrowanie</RadioButton>
-
-            <Label HorizontalAlignment="Center">Numer bajtu do zmiany</Label>
-            <TextBox Margin="10, 0, 0, 10 " HorizontalAlignment="Center" TextWrapping="Wrap" Text="" Width="50" 
-                     Name="error_byte" PreviewTextInput="PreviewTextInput"/>
-
-            <Label HorizontalAlignment="Center">Hasło</Label>
-            <PasswordBox Margin="10, 0, 0, 10 " HorizontalAlignment="Center" Width="100" Name="password"/>
             
-            <Button x:Name="start_button" Click="start_button_Click" Margin="10">uruchom</Button>
-            <TextBlock x:Name="error_name_box" HorizontalAlignment="Center" IsEnabled="False"></TextBlock>-->
+            <TextBlock x:Name="ifConnected" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">No connection</TextBlock>
            
-           <TextBlock x:Name="ifConnected" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">Nie połączono</TextBlock>
-           
-           <Button x:Name="file_button" Click="fileButtonClick" Margin="10">Otwórz plik</Button>
-           <TextBlock x:Name="file_name_box" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">Nie wybrano pliku</TextBlock>
+           <Button x:Name="file_button" Click="fileButtonClick" Margin="10">Open file</Button>
+           <TextBlock x:Name="file_name_box" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap">File is not chosen</TextBlock>
            <TextBlock x:Name="fileChosen" HorizontalAlignment="Center" IsEnabled="False" TextWrapping="Wrap"></TextBlock>
 
             <TextBox x:Name="textBox" HorizontalAlignment="Center" MinWidth="400" Margin="10"></TextBox>
             <RadioButton x:Name="RadioButtonECB" GroupName="One" IsChecked="False" Checked="RadioButtonECB_Checked">ECB</RadioButton>
             <RadioButton x:Name="RadioButtonCBC" GroupName="One" IsChecked="True" Checked="RadioButtonCBC_Checked">CBC</RadioButton>
-           <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Wyślij</Button>
+           <Button x:Name="send" Click="sendButton" Margin="10" IsEnabled="False">Send</Button>
            <ProgressBar x:Name="ProgressBar" Height="20" Visibility="Collapsed"/>
            
            <TextBlock IsEnabled="False" TextWrapping="Wrap">
-               Drugi użytkownik
+               Second user
                <Image x:Name="availabilityIcon" Width="20" Height="20" Source="https://img.icons8.com/color/16/null/ok--v1.png" Visibility="Collapsed"/>
                <Image x:Name="unavailabilityIcon" Width="20" Height="20" Source="https://img.icons8.com/color/16/null/cancel--v1.png" Visibility="Collapsed"/>
            </TextBlock>
 
-           <TextBlock HorizontalAlignment="Left" IsEnabled="False" TextWrapping="Wrap">Otrzymane wiadomości:</TextBlock>
+           <TextBlock HorizontalAlignment="Left" IsEnabled="False" TextWrapping="Wrap">Received messages:</TextBlock>
            <ListBox x:Name="ListBox" SelectionMode="Single" ItemsSource="{Binding Messages}" SelectionChanged="selectionChanged">
                <ListBox.ItemTemplate>
                    <DataTemplate>
@@ -55,7 +38,7 @@
                    </DataTemplate>
                </ListBox.ItemTemplate>
            </ListBox>
-           <Button x:Name="downloadButton" Content="Pobierz" Click="downloadFile" Visibility="Collapsed"/> 
+           <Button x:Name="downloadButton" Content="Download" Click="downloadFile" Visibility="Collapsed"/> 
            
         </StackPanel>
     </Grid>
